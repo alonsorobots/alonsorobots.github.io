@@ -1,140 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS 280A Project 1: Images of the Russian Empire</title>
     <style>
-        h1 {
-            margin-left: 0;   /* No indentation for top-level headings */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            margin-left: 0;
         }
         h2 {
-            margin-left: 20px;  /* Indentation for subheadings */
-        }
-        h3 {
-            margin-left: 40px;  /* More indentation for sub-subheadings */
+            color: #2c3e50;
+            margin-top: 40px;
         }
         p {
-            margin-left: 60px;  /* More indentation for sub-subheadings */
+            margin-left: 20px;
+        }
+        img {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+        .displacement-matrix {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        hr {
+            border: 1px solid #ccc;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #777;
         }
     </style>
 </head>
 <body>
 
-<h1>CS 280A Proj 1: Images of the Russian Empire</h1>
-<h2>by: RGB Alignment</h2>
-<h2>by: Alonso Martinez</h2>
-<hr>
-<h2>Overview</h2>
-<p>
-Between 1863-1944 Prokudin-Gorskii took a first of a kind collection of Red, Green and Blue photos using multiple cameras and corresponding colored filters.
-Unfortunately the translation (and possibly rotation and scale) are misaligned which presents a learning opportunity for us to get our hands dirty in image manipulation.
-This challenge additionally creates an opportunity to learn about computational efficiency when digitally manipulating images.
-</p>
-<h2>Approach</h2>
-<p>
-We first divide the image’s height into three individual images. Then we create all possible permutations of the translated image within a window size and compare the alignment using the structural_similarity method from skimage. 
-To make it more computationally tractable for very large images (TIFs), we use a hierarchical resolution approach to aligning the images (pyramid resolution scheme).
-</p>
-<p>    
-Uniqueness to my approach. Within the possible permutations of the window search, I wondered if there was a way to reduce for loops and roll operations. I chose to explore using a tiling approach in hope to reduce the computational load. I would have liked to have more time to confirm that this was a faster approach than individually transforming images.
-I also began to explore “fancy indexing” to see if instead of using np.roll, I could apply all the transformations at once for the set of tiling images (think of a displacement map, but for indices), but did not finish in time.
-</p>
-<p>
-Within the possible permutations of the window search, I wondered if there was a way to reduce for loops and roll operations. I chose to explore using a tiling approach in hopes to reduce the computational load. I did not get a chance to code the more traditional approach of individually transforming the images and keeping track of the best score to compare the computational impact.
-</p>
-<p>
-I also wanted to explore using "fancy indexing" to see if instead of using np.roll, I could apply all the transformations at once for the set of tiling images, but did not finish in time.
-</p>
+    <h1>CS 280A Proj 1: Images of the Russian Empire</h1>
+    <h2>by: RGB Alignment and Alonso Martinez</h2>
+    <hr>
 
-<h2>Challenges</h2>
-<h3>Accurate vector displacement during pyramid resolution scheme</h3>
-<p>
-While my algorithm was able to achieve alignment, I recognize that my vector displacement written with each image might be off. This is due to them being relative to the previous level in the pyramid, and I did not have enough time to properly compute the final vector displacement between the original and the aligned image.
-</p>
-<h3>Computational efficiency</h3>
-<p>
-The largest challenge was that I spent too much time trying to figure out the fancy indexing approach.
-As mentioned earlier, I did implement the tiling to reduce the number of np.roll method calls but didn’t get to test out its impact.
-</p>
-<p>
-Instead of doing alignment in the highest resolution, I chose to skip this level as it seemed to be achieving enough alignment with the other layers.
-Given more time, I figure that instead of searching for the whole permutation of transformations inside of the window size, that if you take the gradient of the error, you can descend on the right answer. Also, in addition to the pyramid resolution, it would benefit if the permutations of transformations were done in intervals rather than every pixel.
-</p>
+    <h2>Overview</h2>
+    <p>
+        Between 1863-1944, Prokudin-Gorskii took a pioneering collection of Red, Green, and Blue photos using multiple cameras and corresponding colored filters. Unfortunately, the translation (and possibly rotation and scale) are misaligned, which presents a learning opportunity for us to get our hands dirty in image manipulation.
+        This challenge additionally creates an opportunity to learn about computational efficiency when digitally manipulating images.
+    </p>
 
+    <h2>Approach</h2>
+    <p>
+        We first divide the image’s height into three individual images. Then we create all possible permutations of the translated image within a window size and compare the alignment using the structural similarity method from skimage.
+        To make it more computationally tractable for very large images (TIFs), we use a hierarchical resolution approach to align the images (pyramid resolution scheme).
+    </p>
+    <p>
+        I explored reducing for loops and roll operations by using a tiling approach in hopes of reducing the computational load. Unfortunately, I did not have enough time to confirm that this was a faster approach than individually transforming images.
+        Additionally, I explored using “fancy indexing” to apply transformations in bulk for the set of tiling images, but could not finish in time.
+    </p>
 
-<h1>Results</h1>
-<h2>JPGs</h2>
-<img src="./media/cathedral_aligned.jpg" alt="Cathedral aligned image" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[5 2]<br>Green:[12 3]</p>
+    <h2>Challenges</h2>
+    <h3>Accurate vector displacement during pyramid resolution scheme</h3>
+    <p>
+        While the algorithm achieved alignment, I realize that my vector displacement might be off, as it was relative to the previous level in the pyramid.
+    </p>
 
-<img src="./media/monastery_aligned.jpg" alt="monastery aligned image" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[-3 2]<br>Green:[3 2]</p>
+    <h3>Computational efficiency</h3>
+    <p>
+        The biggest challenge was spending too much time on the fancy indexing approach. Instead of doing alignment at the highest resolution, I skipped this level, and in hindsight, exploring gradient descent on the error could have yielded more efficient results.
+    </p>
 
-<img src="./media/tobolsk_aligned.jpg" alt="Tobolsk aligned image" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[3 2]<br>Green:[6 3]</p>
+    <h1>Results</h1>
 
-<h2>TIFSs</h2>
-<img src="./media/lady_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <h2>JPGs</h2>
+    <figure>
+        <img src="./media/cathedral_aligned.jpg" alt="Aligned image of Cathedral">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [5, 2], Green: [12, 3]
+        </figcaption>
+    </figure>
 
-<img src="./media/sculpture_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <figure>
+        <img src="./media/monastery_aligned.jpg" alt="Aligned image of Monastery">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [-3, 2], Green: [3, 2]
+        </figcaption>
+    </figure>
 
-<img src="./media/harvesters_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <figure>
+        <img src="./media/tobolsk_aligned.jpg" alt="Aligned image of Tobolsk">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [3, 2], Green: [6, 3]
+        </figcaption>
+    </figure>
 
-<img src="./media/self_portrait_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <!-- Add similar structure for other images -->
 
-<img src="./media/icon_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <h2>TIFs</h2>
+    <figure>
+        <img src="./media/lady_aligned.jpg" alt="Aligned image of Lady">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [N/A], Green: [N/A]
+        </figcaption>
+    </figure>
 
-<img src="./media/train_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <h1>Additional Images</h1>
+    <figure>
+        <img src="./media/chalice_aligned" alt="Aligned image of Chalice">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [7, 3], Green: [14, 5]
+        </figcaption>
+    </figure>
 
-<img src="./media/onion_church_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
+    <figure>
+        <img src="./media/mozhaisk_aligned" alt="Aligned image of Mozhaisk">
+        <figcaption class="displacement-matrix">
+            <strong>Displacement matrix:</strong> <br> Red: [4, 1], Green: [9, 3]
+        </figcaption>
+    </figure>
 
-<img src="./media/melons_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
-    
-<img src="./media/three_generations_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
-
-<img src="./media/church_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
-
-<img src="./media/emir_aligned.jpg" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red: <br>Green: </p>
-
-<h1>Additional Images:</h3>
-
-<img src="./media/chalice_aligned" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[7 3]<br>Green:[14  5]</p>
-
-<img src="./media/mozhaisk_aligned" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[4 1]<br>Green:[9 3]</p>
-
-
-<img src="./media/Napoleon_aligned" alt="" width="500">
-<h3>Displacement matrix:</h3>
-<p>Red:[6 1]<br>Green:[13  0]</p>
-    
+    <footer>
+        CS 280A - Project 1: RGB Alignment & Image Manipulation | Alonso Martinez
+    </footer>
 
 </body>
 </html>
