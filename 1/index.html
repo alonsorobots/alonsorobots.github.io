@@ -33,6 +33,8 @@ This challenge additionally creates an opportunity to learn about computational 
 <p>
 We first divide the image’s height into three individual images. Then we create all possible permutations of the translated image within a window size and compare the alignment using the structural_similarity method from skimage. 
 To make it more computationally tractable for very large images (TIFs), we use a hierarchical resolution approach to aligning the images (pyramid resolution scheme).
+</p>
+<p>    
 Uniqueness to my approach. Within the possible permutations of the window search, I wondered if there was a way to reduce for loops and roll operations. I chose to explore using a tiling approach in hope to reduce the computational load. I would have liked to have more time to confirm that this was a faster approach than individually transforming images.
 I also began to explore “fancy indexing” to see if instead of using np.roll, I could apply all the transformations at once for the set of tiling images (think of a displacement map, but for indices), but did not finish in time.
 </p>
