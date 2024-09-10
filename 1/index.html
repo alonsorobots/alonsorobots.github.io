@@ -24,13 +24,21 @@
         }
         img {
             display: block;
-            margin: 20px auto;
-            max-width: 100%;
+            max-width: 500px;
             height: auto;
         }
         .displacement-matrix {
             text-align: center;
+        }
+        .image-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
             margin-bottom: 40px;
+        }
+        .image-block {
+            width: 48%;
+            margin-bottom: 20px;
         }
         hr {
             border: 1px solid #ccc;
@@ -46,7 +54,8 @@
 <body>
 
     <h1>CS 280A Proj 1: Images of the Russian Empire</h1>
-    <h2>by: RGB Alignment and Alonso Martinez</h2>
+    <h2>RGB Image Alignment</h2>
+    <h2>By: Alonso Martinez<h2>
     <hr>
 
     <h2>Overview</h2>
@@ -62,7 +71,7 @@
     </p>
     <p>
         I explored reducing for loops and roll operations by using a tiling approach in hopes of reducing the computational load. Unfortunately, I did not have enough time to confirm that this was a faster approach than individually transforming images.
-        Additionally, I explored using “fancy indexing” to apply transformations in bulk for the set of tiling images, but could not finish in time.
+        Additionally, I explored using “fancy indexing” to apply transformations in bulk (think of a displacement map, but for indices) for the set of tiling images, but could not finish in time.
     </p>
 
     <h2>Challenges</h2>
@@ -78,52 +87,128 @@
 
     <h1>Results</h1>
 
-    <h2>JPGs</h2>
-    <figure>
-        <img src="./media/cathedral_aligned.jpg" alt="Aligned image of Cathedral">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [5, 2], Green: [12, 3]
-        </figcaption>
-    </figure>
+    <!-- Start of two-column layout -->
+    <div class="image-wrapper">
+        <div class="image-block">
+            <img src="./media/cathedral_aligned.jpg" alt="Aligned image of Cathedral">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [5, 2], Green: [12, 3]
+            </figcaption>
+        </div>
 
-    <figure>
-        <img src="./media/monastery_aligned.jpg" alt="Aligned image of Monastery">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [-3, 2], Green: [3, 2]
-        </figcaption>
-    </figure>
+        <div class="image-block">
+            <img src="./media/monastery_aligned.jpg" alt="Aligned image of Monastery">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [-3, 2], Green: [3, 2]
+            </figcaption>
+        </div>
 
-    <figure>
-        <img src="./media/tobolsk_aligned.jpg" alt="Aligned image of Tobolsk">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [3, 2], Green: [6, 3]
-        </figcaption>
-    </figure>
+        <div class="image-block">
+            <img src="./media/tobolsk_aligned.jpg" alt="Aligned image of Tobolsk">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [3, 2], Green: [6, 3]
+            </figcaption>
+        </div>
 
-    <!-- Add similar structure for other images -->
+        <div class="image-block">
+            <img src="./media/lady_aligned.jpg" alt="Aligned image of Lady">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
 
-    <h2>TIFs</h2>
-    <figure>
-        <img src="./media/lady_aligned.jpg" alt="Aligned image of Lady">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [N/A], Green: [N/A]
-        </figcaption>
-    </figure>
+        <div class="image-block">
+            <img src="./media/sculpture_aligned.jpg" alt="Aligned image of Sculpture">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
 
-    <h1>Additional Images</h1>
-    <figure>
-        <img src="./media/chalice_aligned" alt="Aligned image of Chalice">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [7, 3], Green: [14, 5]
-        </figcaption>
-    </figure>
+        <div class="image-block">
+            <img src="./media/harvesters_aligned.jpg" alt="Aligned image of Harvesters">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
 
-    <figure>
-        <img src="./media/mozhaisk_aligned" alt="Aligned image of Mozhaisk">
-        <figcaption class="displacement-matrix">
-            <strong>Displacement matrix:</strong> <br> Red: [4, 1], Green: [9, 3]
-        </figcaption>
-    </figure>
+        <div class="image-block">
+            <img src="./media/self_portrait_aligned.jpg" alt="Aligned image of Self Portrait">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/icon_aligned.jpg" alt="Aligned image of Icon">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/train_aligned.jpg" alt="Aligned image of Train">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/onion_church_aligned.jpg" alt="Aligned image of Onion Church">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/melons_aligned.jpg" alt="Aligned image of Melons">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/three_generations_aligned.jpg" alt="Aligned image of Three Generations">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/church_aligned.jpg" alt="Aligned image of Church">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/emir_aligned.jpg" alt="Aligned image of Emir">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: N/A, Green: N/A
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/chalice_aligned.jpg" alt="Aligned image of Chalice">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [7, 3], Green: [14, 5]
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/mozhaisk_aligned.jpg" alt="Aligned image of Mozhaisk">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [4, 1], Green: [9, 3]
+            </figcaption>
+        </div>
+
+        <div class="image-block">
+            <img src="./media/Napoleon_aligned.jpg" alt="Aligned image of Napoleon">
+            <figcaption class="displacement-matrix">
+                <strong>Displacement matrix:</strong> <br> Red: [6, 1], Green: [13, 0]
+            </figcaption>
+        </div>
+    </div>
+    <!-- End of two-column layout -->
 
     <footer>
         CS 280A - Project 1: RGB Alignment & Image Manipulation | Alonso Martinez
