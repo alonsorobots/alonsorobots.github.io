@@ -1,57 +1,66 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>CS 280A Project 1: Images of the Russian Empire</title>
+    <style>
+        h1 {
+            margin-left: 0;   /* No indentation for top-level headings */
+        }
+        h2 {
+            margin-left: 20px;  /* Indentation for subheadings */
+        }
+        h3 {
+            margin-left: 40px;  /* More indentation for sub-subheadings */
+        }
+    </style>
+</head>
 <body>
+
 <h1>CS 280A Proj 1: Images of the Russian Empire</h1>
 <h2>by: Alonso Martinez</h2>
 <hr>
 <h2>Overview</h2>
 <p>
-This project taught us about how images are composed of intensity channels of Red, Green and Blue colors. Between 1863-1944 Prokudin-Gorskii took a first of a kind collection of Red, Green and Blue photos using multiple cameras and corresponding colored filters. Unfortunately they are misaligned which presents a learning opportunity for us to get our hands dirty in image manipulation.
+This project taught us about how images are composed of intensity channels of Red, Green, and Blue colors. Between 1863-1944, Prokudin-Gorskii took a first-of-a-kind collection of Red, Green, and Blue photos using multiple cameras and corresponding colored filters. Unfortunately, they are misaligned, which presents a learning opportunity for us to get our hands dirty in image manipulation.
 </p>
 <h2>Approach</h2>
 <p>
-I follow the approach described in the project by first dividing the image’s height into three individual images, creating permutations of the  translated image and comparing the alignment using the structural_similarity method from skimage. To make it more computationally tractable for very large images, we use a hierarchical resolution approach to aligning the images.
-Uniqueness to my approach. Within the possible permutations of the window search, I wondered if there was a way to reduce for loops and roll operations. I chose to explore using a tiling approach in hope to reduce the computational load. I did not get a chance to code the more traditional approach of individually transforming the images and keeping track of the best score to compare the computational impact.
-I also wanted to explore using “fancy indexing” to see if instead of using np.roll, I could apply all the transformations at once for the set of tiling images, but did not finish in time. 
+I follow the approach described in the project by first dividing the image’s height into three individual images, creating permutations of the translated image, and comparing the alignment using the structural_similarity method from skimage. To make it more computationally tractable for very large images, we use a hierarchical resolution approach to align the images.
 </p>
+<p>
+Within the possible permutations of the window search, I wondered if there was a way to reduce for loops and roll operations. I chose to explore using a tiling approach in hopes to reduce the computational load. I did not get a chance to code the more traditional approach of individually transforming the images and keeping track of the best score to compare the computational impact.
+</p>
+<p>
+I also wanted to explore using "fancy indexing" to see if instead of using np.roll, I could apply all the transformations at once for the set of tiling images, but did not finish in time.
+</p>
+
 <h2>Challenges</h2>
 <h3>Computational efficiency</h3>
 <p>
-The largest challenge was that I spent too much time trying to figure out the fancy indexing approach. 
-As mentioned earlier I did implement the tiling in order to reduce the amount of np.roll method calls but didn’t get to test out its impact. 
-Instead of doing alignment in the highest resolution, I chose to skip this level as it seemed to be achieving enough alignment with the other layers. 
-Given more time, I figure that instead of searching for the whole permutation of transformations inside of the window size, that if you take the gradient of the error, you can descend on the right answer. Also, in additional to the pyramid resolution, it would benefit if the permutations of transformations were done in intervals rather than every pixel. It's like the your learning_rate in a gradient descent is too small. 
+The largest challenge was that I spent too much time trying to figure out the fancy indexing approach.
+As mentioned earlier, I did implement the tiling to reduce the number of np.roll method calls but didn’t get to test out its impact.
+</p>
+<p>
+Instead of doing alignment in the highest resolution, I chose to skip this level as it seemed to be achieving enough alignment with the other layers.
+Given more time, I figure that instead of searching for the whole permutation of transformations inside of the window size, that if you take the gradient of the error, you can descend on the right answer. Also, in addition to the pyramid resolution, it would benefit if the permutations of transformations were done in intervals rather than every pixel.
 </p>
 <h3>Pyramid displacement</h3>
 <p>
-While my algorithm was able to achieve alignment, I recognize that my vector displacement written with each image might be off. This is due to them being relative to the previous level in the pyramid and I did not have enough time to properly compute the final vector displacement between the original and the aligned image. 
+While my algorithm was able to achieve alignment, I recognize that my vector displacement written with each image might be off. This is due to them being relative to the previous level in the pyramid, and I did not have enough time to properly compute the final vector displacement between the original and the aligned image.
 </p>
+
 <h2>Results</h2>
-<img src="./media/cathedral_aligned.jpg" alt="" width="500" height="300">
-<h3>Displacement matrix:
-<p>
-red: ()
-green: ()
-</p>
-<img src="./media/monestary_aligned.jpg" alt="" width="500" height="300">
-<h3>Displacement matrix:
-<p>
-red: ()
-green: ()
-</p>
-<img src="./media/tobolsk_aligned.jpg" alt="" width="500" height="300">
-<h3>Displacement matrix:
-<p>
-red: ()
-green: ()
-</p>
+<img src="./media/cathedral_aligned.jpg" alt="Cathedral aligned image" width="500">
+<h3>Displacement matrix:</h3>
+<p>Red: [5 2]<br>Green: [12 3]</p>
 
+<img src="./media/monestary_aligned.jpg" alt="Monestary aligned image" width="500">
+<h3>Displacement matrix:</h3>
+<p>Red: [-3 2]<br>Green: [3 2]</p>
 
-<!-- Computational efficiency
+<img src="./media/tobolsk_aligned.jpg" alt="Tobolsk aligned image" width="500">
+<h3>Displacement matrix:</h3>
+<p>Red: [3 2]<br>Green: [6 3]</p>
 
-The result of your algorithm on all of our example images.
-Listing offsets per each one 
-If your algorithm failed to align any image, provide a brief explanation of why.
-The result of your algorithm on a few examples of your own choosing, downloaded from the Prokudin-Gorskii collection.
-Listing offsets per each one 
- -->
+</body>
+</html>
