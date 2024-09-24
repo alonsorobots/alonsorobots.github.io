@@ -528,6 +528,22 @@
             <img src="./media/hybrid_hank_ned_impulse_final.jpg" alt="Dante original" width="800">
         </div>
     </div>
+    <span class="highlight"> Bells and Whistles
+    </span>
+    <div class="image-text">I played around with the choice of color and greyscale for both the low and high
+        frequency images. From my experimentation, I found that color in the low pass is better than in the high pass
+        but this is only true when the colors of your two objects are close together.</div>
+
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Original Dante</div>
+            <img src="./media/hybrid_hank_ned_impulse.jpg" alt="Dante original" width="350">
+        </div>
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Low Freq Color, High freq Greyscale</div>
+            <img src="./media/hybrid_hank_ned_impulse_color.jpg" alt="Dante original" width="350">
+        </div>
+    </div>
     <hr>
 
 
@@ -615,11 +631,11 @@
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Zebra</div>
+            <div class="image-text">Jackson's chameleon</div>
             <img src="./media/blend_4.jpg" alt="Dante original" width="250">
         </div>
         <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Giraffe</div>
+            <div class="image-text">Rainbow Lorikeet</div>
             <img src="./media/blend_5.jpg" alt="Dante original" width="250">
         </div>
         <div class="image-item" style="margin: 9px;">
@@ -660,14 +676,54 @@
             <img src="./media/blend_out4.jpg" alt="Dante original" width="350">
         </div>
     </div>
-
+    <hr>
+    <p class='indented' style="text-align: center;">Example 3 - Orapple:
+    </p>
+    <hr>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Final Blend</div>
+            <img src="./media/orapple.jpg" alt="Dante original" width="350">
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Orange Gaussian stack</div>
+            <img src="./media/blur_stack_3.jpg" alt="Dante original" width="900">
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Orange Laplacian stack</div>
+            <img src="./media/laplacian_stack_2.jpg" alt="Dante original" width="700">
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Mask Gaussian stack</div>
+            <img src="./media/blur_stack_4.jpg" alt="Dante original" width="900">
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-item" style="margin: 9px;">
+            <div class="image-text">Final Blend</div>
+            <img src="./media/blended_blur_stack_2.jpg" alt="Dante original" width="900">
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1"></div>
+    <div class="image-item" style="margin: 9px;">
+        <div class="image-text">Laplacian stack</div>
+        <img src="./media/blended_laplace_stack_2.jpg" alt="Dante original" width="900">
+    </div>
+    </div>
     <hr>
     <h2>Final thoughts</h2>
-    <p class='indented'> This project and the hands-on lectures revealed the incredible complexity behind
-        seemingly simple signal stacking. Manipulating images taught the delicate balance of knowing when to clip
-        values and when it results in losing critical information. Throughout this project, I kept thinking, "Why
-        isn't there a Photoshop clone brush that leverages the human perceptual trick of focusing mostly on higher
-        frequencies?!" </p>
+    <p class='indented'> This project and the hands-on lectures revealed the incredible complexity that very simple
+        components working together can create. A simple but practical lesson taught to me in this lesson was also to be
+        very vigilant about understanding how data ranges are manipulated by each operation; knowing when it's ok to
+        clip data and when it's not. Knowing when it's ok to remap values and when it's not. Throughout this project, I
+        kept thinking, this is so cool, "Why isn't there a Photoshop clone / blend brush that leverages the human
+        perceptual trick of focusing mostly on higher frequencies?!" </p>
     <footer>
         CS 280A - Project 2: Fun with Frequencies | Alonso Martinez
     </footer>
