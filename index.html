@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS280A Computer Vision Projects - Alonso Martinez</title>
+    <style>
+        /* Overall Layout */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f0f0;
+            /* Super light gray background */
+            color: #3a3a3a;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Header Section */
+        header {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        p.tagline {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        p.author {
+            font-size: 1rem;
+            color: #95a5a6;
+            margin-bottom: 10px;
+        }
+
+        /* Profile Image */
+        .profile-photo {
+            width: 100%;
+            max-width: 200px;
+            border-radius: 30px;
+            object-fit: cover;
+            margin-bottom: -10px;
+            border: 0px solid #ecf0f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Project Links (two-column layout) */
+        .projects {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            /* Spacing between the cards */
+            width: 100%;
+            max-width: 790px;
+            /* Total width for two 300px columns + gap */
+            margin-top: -30px;
+            margin-bottom: 0 auto;
+        }
+
+        .project-title {
+            font-size: 1.05rem;
+            font-weight: bold;
+            /* Makes the project title bold */
+            margin-bottom: 10px;
+        }
+
+        /* Project Card */
+        .project-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 310px;
+            /* Each column will be 300px wide */
+            margin: 20px 0;
+            padding: 35px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            text-align: center;
+            text-decoration: none;
+            color: #2c3e50;
+            position: relative;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Project Images */
+        .project-image {
+            width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 20px;
+            object-fit: cover;
+        }
+
+        /* White overlay effect */
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 30px;
+            background-color: white;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .project-card:hover::after {
+            opacity: 0.2;
+        }
+
+        /* Footer */
+        footer {
+            margin: 50px 0;
+            font-size: 0.9rem;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <h1>CS280A Computer Vision Projects</h1>
+        <p class="tagline">Exploring the world of computer vision through <br>practical assignments by Alonso Martinez.
+        </p>
+        <!-- Profile Photo -->
+        <img src="/mainpage_media/alonso.jpg" alt="Alonso Martinez" class="profile-photo">
+    </header>
+
+    <!-- Projects Section -->
+    <div class="projects">
+        <a href="/1/index.html" class="project-card">
+            <div class="project-title">Aligning Images of the Russian Empire</div>
+            <img src="/mainpage_media/proj1.jpg" alt="Aligning Images" class="project-image">
+            <div class="project-description">Aligning RGB channels to recreate historic images with clarity.</div>
+        </a>
+
+        <a href="/2/index.html" class="project-card">
+            <div class="project-title">Fun with Filters and Frequencies</div>
+            <img src="/mainpage_media/proj2.jpg" alt="Fun with Filters" class="project-image">
+            <div class="project-description">Creating hybrid images that appear as one image from a distance and another
+                up close.</div>
+        </a>
+
+        <a href="/3/index.html" class="project-card">
+            <div class="project-title">Face Morphing and Modeling a Photo Collection</div>
+            <img src="/mainpage_media/proj2.jpg" alt="Face Morphing" class="project-image">
+            <div class="project-description">Using facial landmarks to morph and blend faces across images.</div>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        CS280A - Fall 2024 | Alonso Martinez | Berkeley EECS
+    </footer>
+
+</body>
+
+</html>
