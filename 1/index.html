@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,37 +13,48 @@
             padding: 20px;
             line-height: 1.6;
         }
-        h1, h2, h3 {
+
+        h1,
+        h2,
+        h3 {
             margin-left: 0;
         }
+
         h2 {
             color: #2c3e50;
             margin-top: 40px;
         }
+
         p {
             margin-left: 20px;
         }
+
         img {
             display: block;
             max-width: 500px;
             height: auto;
         }
+
         .displacement-matrix {
             text-align: center;
         }
+
         .image-wrapper {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
             margin-bottom: 40px;
         }
+
         .image-block {
             width: 48%;
             margin-bottom: 20px;
         }
+
         hr {
             border: 1px solid #ccc;
         }
+
         footer {
             text-align: center;
             margin-top: 50px;
@@ -51,6 +63,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <h1>CS 280A Proj 1: Images of the Russian Empire</h1>
@@ -59,29 +72,41 @@
 
     <h2>Overview</h2>
     <p>
-        Between 1863-1944, Prokudin-Gorskii took a pioneering collection of Red, Green, and Blue photos using multiple cameras and corresponding colored filters. Unfortunately, the translation (and possibly rotation and scale) are misaligned, which presents a learning opportunity for us to get our hands dirty in image manipulation.
-        This challenge additionally creates an opportunity to learn about computational efficiency when digitally manipulating images.
+        Between 1863-1944, Prokudin-Gorskii took a pioneering collection of Red, Green, and Blue photos using multiple
+        cameras and corresponding colored filters. Unfortunately, the translation (and possibly rotation and scale) are
+        misaligned, which presents a learning opportunity for us to get our hands dirty in image manipulation.
+        This challenge additionally creates an opportunity to learn about computational efficiency when digitally
+        manipulating images.
     </p>
 
     <h2>Approach</h2>
     <p>
-        We first divide the image’s height into three individual images. Then we create all possible permutations of the translated image within a window size and compare the alignment using the structural similarity method from skimage.
-        To make it more computationally tractable for very large images (TIFs), we use a hierarchical resolution approach to align the images (pyramid resolution scheme).
+        We first divide the image’s height into three individual images. Then we create all possible permutations of the
+        translated image within a window size and compare the alignment using the structural similarity method from
+        skimage.
+        To make it more computationally tractable for very large images (TIFs), we use a hierarchical resolution
+        approach to align the images (pyramid resolution scheme).
     </p>
     <p>
-        I explored reducing for loops and roll operations by using a tiling approach in hopes of reducing the computational load. Unfortunately, I did not have enough time to confirm that this was a faster approach than individually transforming images.
-        Additionally, I explored using “fancy indexing” to apply transformations in bulk for the set of tiling images, but could not finish in time.
+        I explored reducing for loops and roll operations by using a tiling approach in hopes of reducing the
+        computational load. Unfortunately, I did not have enough time to confirm that this was a faster approach than
+        individually transforming images.
+        Additionally, I explored using “fancy indexing” to apply transformations in bulk for the set of tiling images,
+        but could not finish in time.
     </p>
 
     <h2>Challenges</h2>
     <h3>Accurate vector displacement during pyramid resolution scheme</h3>
     <p>
-        While the algorithm achieved alignment, I realize that my vector displacement might be off, as it was relative to the previous level in the pyramid.
+        While the algorithm achieved alignment, I realize that my vector displacement might be off, as it was relative
+        to the previous level in the pyramid.
     </p>
 
     <h3>Computational efficiency</h3>
     <p>
-        The biggest challenge was spending too much time on the fancy indexing approach. Instead of doing alignment at the highest resolution, I skipped this level, and in hindsight, exploring gradient descent on the error could have yielded more efficient results.
+        The biggest challenge was spending too much time on the fancy indexing approach. Instead of doing alignment at
+        the highest resolution, I skipped this level, and in hindsight, exploring gradient descent on the error could
+        have yielded more efficient results.
     </p>
 
     <h1>Results</h1>
@@ -142,7 +167,7 @@
         </div>
     </div>
 
-    <h2>Additional Images</h2>
+    <h2>Additional Imagess</h2>
     <div class="image-wrapper">
         <div class="image-block">
             <img src="./media/chalice_aligned.jpg" alt="Aligned image of Chalice">
@@ -172,4 +197,5 @@
     </footer>
 
 </body>
+
 </html>
