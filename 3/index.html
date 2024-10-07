@@ -2,6 +2,8 @@
 <html lang="en">
 
 <head>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS 280A - Project 3: Face Morphing and Modelling a Photo Collection | Alonso Martinez</title>
@@ -208,43 +210,81 @@
 
 <body>
 
-    <h1>CS 280A Project 2: Fun with Filters and Frequencies</h1>
+    <h1>CS 280A Project 3: Face Morphing and Modelling a Photo Collection</h1>
     <h2>by Alonso Martinez</h2>
 
-    <h2>Part 1 - Fun with Filters</h2>
-    <h3>1.1 - Finite Difference Operator </h3>
+    <h2>Part 1 - Defining Correspondences</h2>
 
-    <p class='indented'>When detecting edges, the width of the filter matters (for example [-1,1] vs [-1,0,1]). Below is
-        a gif of the effect of the width of the filter on the edge:
-        <span class="highlight">Observation: notice that it not just dilates the edges left and right, but also
-            introduces some issues at the edges of the image. I imagine this could be an issue in filters like Gaussian
-            that have a symmetric/ odd sized kernel vs others like edge detection that might benefit from an even sized
-            kernel. If using a width 3 edge filter, we need to make sure to divide the output by 2 to normalize the
-            data.
-        </span>
+    <p class='indented'>Given my background in computer graphics, I was able easily establish 462 points of
+        correspondance between two images in the software Autodesk Maya by creating a polygonal mesh composed of
+        points and triangles. The topology of the triangles was created manually given my previous experience in
+        character modeling. I then exported the geometry as an obj file which I then read into my python script.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/edge_width_sweep.gif" alt="Edge Filter Sweep" width=250>
+            <img src="./media/alonso_mesh.jpg" alt="" width=250>
         </div>
     </div>
 
-    <p class='indented'> Similarly, when convolving with a multi-row kernel, I realize that tiling the rows y also
-        incorrectly dilated the edge detection image. Instead, padding the kernel with zeros is the correct solution.
+    <p class='indented'> One of the goals of this project is to learn the low level computer graphics involved with
+        being able to morphing between the faces of two people. Given I already had the 3D meshes and textures in Maya,
+        it was fairly trivial to achieve the final result of the face morphing within the software, which I could then
+        use as a target to compare my results to. Here are the results of the morphing between Gael Garcia Bernal and
+        myself.
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/alonso_gael_maya.gif" alt="Edge Filter Sweep" width=450>
+        </div>
+    </div>
+
+    <h3>Part 1.0.1 - Establish points of correspondance</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/alonso_corr.jpg" alt="" width=250>
+            <img src="./media/gael_corr.jpg" alt="" width=250>
+        </div>
+    </div>
+    <h3>Part 1.0.2 - Manipulating textures and points</h3>
+
+
+    <p class='indented'> We start with point positions linear transformations since those are the easiest. Here we show
+        that a simple 45° transformation can be represented by the following 2D rotation matrix:
+
+        $$
+        \begin{bmatrix}
+        \cos \theta & -\sin \theta \\
+        \sin \theta & \cos \theta
+        \end{bmatrix}
+        \begin{bmatrix}
+        x \\
+        y
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+        x \cos \theta - y \sin \theta \\
+        x \sin \theta + y \cos \theta
+        \end{bmatrix}
+        $$
+    </p>
+    <h3> Part 1.1 - Midway face </h3>
+    <p> The goal of this section is to create a halfway point between my face and Gael's face. We first start by
+        computing the correponsances for both faces: </p>
+
+    </p>
+
+    <p> We first average the points of the two faces to create a midway face. This is done by averaging the x and y
+        coordinates of the two faces. </p>
+
     </p>
 
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/filter_tile_height.gif" alt="Smooth Gaussian with green mask" width=250>
+            <img src="./media/average_mesh.jpg" alt="" width=250>
         </div>
     </div>
 
-    <p class='indented'>The threshold for a binary mask was swept and a threshold value of 0.13 was manually chosen.
-        <span class="highlight">Speculation: Critical information seemed present in the extremes of positive AND
-            negative values and filtering out a smooth band of the middle range values with a Gaussian would give
-            smoother / better results. (This was solved later when we took the gradient of the image as it deals with
-            absolute values)
-        </span>
+    <p class='indented'>
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
