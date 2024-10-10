@@ -216,7 +216,7 @@
     <h2>Part 1 - Defining Correspondences</h2>
 
     <p class='indented'>Given my background in computer graphics, I was able easily establish 462 points of
-        correspondance between two images in the software Autodesk Maya by creating a polygonal mesh composed of
+        correspondence between two images in the software Autodesk Maya by creating a polygonal mesh composed of
         points and triangles. The topology of the triangles was created manually given my previous experience in
         character modeling. I then exported the geometry as an obj file which I then read into my python script.
     </p>
@@ -238,7 +238,7 @@
         </div>
     </div>
 
-    <p class='indented'> Here we show the points of correspondance between the two faces.
+    <p class='indented'> Here we show the points of correspondence between the two faces.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -274,7 +274,7 @@
     <h2> Part 2 - Midway face </h2>
     <p class='indented'> The goal of this section is to create a halfway point between my face and Gael's face. We first
         start by
-        computing the correponsances for both faces:
+        computing the correspondences for both faces:
 
         We first average the points of the two faces to create a midway face. This is done by averaging the x and y
         coordinates of the two faces.
@@ -286,7 +286,7 @@
         </div>
     </div>
 
-    <p class='indented'> Then we figure out the invertse warp for each of the triangles in the mesh and we recompile it
+    <p class='indented'> Then we figure out the inverse warp for each of the triangles in the mesh and we recompile it
         into an image using polygon masking. I used bilinear_interpolate to get the pixel values for the
         transformed triangles.
     </p>
@@ -310,7 +310,7 @@
     </div>
     <h2>Part 3 - The Morph Sequence</h2>
     <p class='indented'> A linear interpolation between the source and target triangles was created with parameter 't'
-        and an interval of 45 transitions frames were evalutaed. This is the final result of the morphing sequence:
+        and an interval of 45 transitions frames were evaluated. This is the final result of the morphing sequence:
     </p>
 
     <div class="image-wrapper indent-level-1">
@@ -319,8 +319,8 @@
         </div>
     </div>
     <h2>Part 4 - The "Mean face" of a population</h2>
-    <p class='indented'> The Dames facial dataset is composed of 40 individuals with images and points of
-        correspondance. It we simply average the pixel values from all of the images of this dataset, we very some very
+    <p class='indented'> The Danes facial dataset is composed of 40 individuals with images and points of
+        correspondence. It we simply average the pixel values from all of the images of this dataset, we very some very
         rough structure:
     </p>
     <div class="image-wrapper indent-level-1">
@@ -329,8 +329,8 @@
 
         </div>
     </div>
-    <p class='indented'> Instead, if we use the points of correspondance for the entire dataset to average the images,
-        we get a much more realistic looking face. Here is an example of the points of correspondance on two
+    <p class='indented'> Instead, if we use the points of correspondence for the entire dataset to average the images,
+        we get a much more realistic looking face. Here is an example of the points of correspondence on two
         individuals:
     </p>
     <div class="image-wrapper indent-level-1">
@@ -342,7 +342,7 @@
         </div>
     </div>
 
-    <p class='indented'> If we then get the average position for those points of correspondance, warp the texture in the
+    <p class='indented'> If we then get the average position for those points of correspondence, warp the texture in the
         triangles appropriately, and then average the resulting textures for all the people in the dataset, we get a
         MUCH more realistic looking face:
     </p>
@@ -385,7 +385,7 @@
             <img src="./media/alonso_danes_1.jpg" alt="Edge Filter Sweep" width=300>
         </div>
     </div>
-    <p class='indented'> This is what it looks like when you morph the aaerage Danes point positions into my geometry.
+    <p class='indented'> This is what it looks like when you morph the average Danes point positions into my geometry.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -395,7 +395,7 @@
     <h2>Part 5 - Caricatures: Extrapolating from the mean</h2>
     <p class='indented'> Now that we have a linear interpolation between my face and the average face of the Danes
         dataset, we can extrapolate from the mean face to create caricatures. Here is an example of what happens when
-        you set the parameter 't' to 1.5 (The morph is most distictive when the gif transitions back to the beginning):
+        you set the parameter 't' to 1.5 (The morph is most distinctive when the gif transitions back to the beginning):
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -406,7 +406,8 @@
 
 
     <h2>Part 6 - Bells and Whistles</h2>
-    <p class='indented' style="text-align: center"> Using Googles Imagen, I created a small dataset of 5 images of older
+    <p class='indented' style="text-align: center"> Using Google's Imagen, I created a small dataset of 5 images of
+        older
         men:
     </p>
     <div class="image-wrapper indent-level-1">
@@ -418,7 +419,7 @@
             <img src="./media/old/05.jpg" alt="Edge Filter Sweep" width=150>
         </div>
     </div>
-    <p class='indented' style="text-align: center"> Like previously we found points of correspondance for the dataset:
+    <p class='indented' style="text-align: center"> Like previously we found points of correspondence for the dataset:
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <img src="./media/old1_topo.jpg" alt="Edge Filter Sweep" width=350>
@@ -438,7 +439,7 @@
                 <img src="./media/alonso_small.jpg" alt="Gaussian blur sweep" width="450" class="pixelated">
             </div>
             <div class="image-item">
-                <div class="image-text">Halway morph with older dataset</div>
+                <div class="image-text">Halfway morph with older dataset</div>
                 <img src="./media/alonso_old_midway.jpg" alt="Gaussian blur sweep" width="450" class="pixelated">
             </div>
         </div>
