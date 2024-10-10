@@ -238,16 +238,15 @@
         </div>
     </div>
 
-    <h3>Part 1.0.1 - Establish points of correspondance</h3>
+    <p class='indented'> Here we show the points of correspondance between the two faces.
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <img src="./media/alonso_corr.jpg" alt="" width=250>
             <img src="./media/gael_corr.jpg" alt="" width=250>
         </div>
     </div>
-    <h3>Part 1.0.2 - Manipulating textures and points</h3>
-
-
+    <h3>Part 1.0 - Linear transformations on textures and points</h3>
     <p class='indented'> We start with point positions linear transformations since those are the easiest. Here we show
         that a simple 45° transformation can be represented by the following 2D rotation matrix:
 
@@ -267,15 +266,18 @@
         \end{bmatrix}
         $$
     </p>
-    <h3> Part 1.1 - Midway face </h3>
-    <p> The goal of this section is to create a halfway point between my face and Gael's face. We first start by
-        computing the correponsances for both faces: </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/alonso_rotated.jpg" alt="" width=250>
+        </div>
+    </div>
+    <h2> Part 2 - Midway face </h2>
+    <p class='indented'> The goal of this section is to create a halfway point between my face and Gael's face. We first
+        start by
+        computing the correponsances for both faces:
 
-    </p>
-
-    <p> We first average the points of the two faces to create a midway face. This is done by averaging the x and y
-        coordinates of the two faces. </p>
-
+        We first average the points of the two faces to create a midway face. This is done by averaging the x and y
+        coordinates of the two faces.
     </p>
 
     <div class="image-wrapper indent-level-1">
@@ -284,494 +286,146 @@
         </div>
     </div>
 
-    <p class='indented'>
+    <p class='indented'> Then we figure out the invertse warp for each of the triangles in the mesh and we recompile it
+        into an image using polygon masking. I used bilinear_interpolate to get the pixel values for the
+        transformed triangles.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/edge_filter_sweep_final.jpg" alt="Edge Filter Sweep" width=800>
+            <div class="image-item">
+                <div class="image-text">Original Alonso</div>
+                <img src="./media/alonso_small.jpg" alt="Gaussian blur sweep" width="350" class="pixelated">
+            </div>
+
+            <div class="image-item">
+                <div class="image-text">Original Gael</div>
+                <img src="./media/gael_small.jpg" alt="Gaussian blur sweep" width="350" class="pixelated">
+            </div>
+
+            <div class="image-item">
+                <div class="image-text">Midaway face </div>
+                <img src="./media/alonso_gael_midway.jpg" alt="Gaussian blur sweep" width="350" class="pixelated">
+            </div>
         </div>
     </div>
+    <h2>Part 3 - The Morph Sequence</h2>
+    <p class='indented'> A linear interpolation between the source and target triangles was created with parameter 't'
+        and an interval of 45 transitions frames were evalutaed. This is the final result of the morphing sequence:
+    </p>
 
-    <p class='indented'> Now that we have extracted the left and right and up and down edges, how do we compose them?
-        This is done by computing the "gradient magnitude" by squaring the outputs of the dx and dy filters, adding
-        them and then taking the square root. This makes sense as previously we were doing a binary filter not paying
-        attention to the negative values and this in essence it taking the magnitude of the displacement vector.
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/animated_morph.gif" alt="Edge Filter Sweep" width=600>
+        </div>
+    </div>
+    <h2>Part 4 - The "Mean face" of a population</h2>
+    <p class='indented'> The Dames facial dataset is composed of 40 individuals with images and points of
+        correspondance. It we simply average the pixel values from all of the images of this dataset, we very some very
+        rough structure:
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/gradient.jpg" alt="Gaussian blur sweep" width=250>
+            <img src="./media/danes_avg_notopo.jpg" alt="Edge Filter Sweep" width=700>
+
         </div>
     </div>
-
-    <p class='indented' style="text-align: center;">
-        <span class="highlight">Musing: Squaring and square root operations
-            are non-linear in comparison to taking the
-            absolute value. I suspect that given the range is [-1,1] this won't have large influence, but it's always
-            good to be aware that we are changing the distribution of the values.
-        </span><br><br>
-        The magnitude correctly aggregates information from the dx and dy
-        for which we do another binary mask threshold sweep and choose 0.14.
+    <p class='indented'> Instead, if we use the points of correspondance for the entire dataset to average the images,
+        we get a much more realistic looking face. Here is an example of the points of correspondance on two
+        individuals:
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/mag_binary_threshold_sweep.gif" alt="Gaussian blur sweep" width=250>
+            <img src="./media/danes_topo_overlaid.jpg" alt="Edge Filter Sweep" width=400>
         </div>
-    </div>
-
-    <hr>
-    <h3>Part 1.2 - Derivative of Gaussian (DoG) Filter </h3>
-
-    <p class='indented'> The Gaussian sigma was chosen to avoid clipping at the edges. Since the mask may later be
-        represented in an 8-bit (0-255) range, I designed the filter to highlight values that would round to the darkest
-        possible shade (values less than 1/255), using green for those cases. </p>
-
-    <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/smooth_gaussian.jpg" alt="Smooth Gaussian with green mask" width=100>
+            <img src="./media/danes_topo_overlaid2.jpg" alt="Edge Filter Sweep" width=400>
         </div>
     </div>
 
-    <p class='indented'> A Gaussian filter size sweep was done trying to balance cleaning up the anti-alias issues
-        without losing too much information. A kernel size of 7 was chosen as a starting point.
-        <span class="highlight">Speculation: The ideal resolution of the Gaussian kernel might be dependent on the image
-            size and making it invariant to that might be a good experiment.
-        </span>
+    <p class='indented'> If we then get the average position for those points of correspondance, warp the texture in the
+        triangles appropriately, and then average the resulting textures for all the people in the dataset, we get a
+        MUCH more realistic looking face:
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/blur_sweep_final.jpg" alt="Gaussian blur sweep" width=1024>
+            <img src="./media/danes_avg_topo.jpg" alt="Edge Filter Sweep" width=700>
         </div>
     </div>
 
-    <p class='indented'> More sweeps for finding the Gaussian sigma and binary threshold were done and a sigma of 1 and
-        binary threshold of 0.2 was chosen. This will be the target for our composite kernel.
-        <span class="highlight">Observation: Using the gaussian filter helped get rid of noise and anti-aliasing issues
-            in the image. While many improvements were made, one has to be careful that the filter does not change the
-            'essence' of the image.
-        </span>
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <img src="./media/target_gradient.jpg" alt="Gaussian blur sweep" width=250>
-        </div>
-    </div>
-
-    <p class='indented' style="text-align: center;"> We create a composite kernel composed of the Gaussian kernel with
-        the dx and dy filters correspondingly:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <img src="./media/gaussian_x_kernel.jpg" alt="Gaussian blur sweep" width=150 class="pixelated">
-            <img src="./media/gaussian_y_kernel.jpg" alt="Gaussian blur sweep" width=150 class="pixelated">
-        </div>
-    </div>
-
-    <p class='indented'> On the left we have the output of convolving with the composite filters above. On the right we
-        have a binary delta between the two images. There are *some* differences around the border, but not
-        experientially different
-        and proving the commutative and additive properties of convolutions.
+    <p class='indented'> Here are some examples of what an individual face looks like warped to the mean face:
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
                 <div class="image-text">Original</div>
-                <img src="./media/composite_out.jpg" alt="Gaussian blur sweep" width="250" class="pixelated">
+                <img src="./media/07.jpg" alt="Gaussian blur sweep" width="350" class="pixelated">
             </div>
-
             <div class="image-item">
-                <div class="image-text">Diff</div>
-                <img src="./media/composite_diff.jpg" alt="Gaussian blur sweep" width="250" class="pixelated">
+                <div class="image-text">Average geometry morph</div>
+                <img src="./media/danes_7_avg.jpg" alt="Gaussian blur sweep" width="350" class="pixelated">
             </div>
         </div>
     </div>
-
-    <hr>
-    <h2>Part 2 Fun with Frequencies!</h2>
-    <h3>Part 2.1 - Image "Sharpening" </h3>
-
-    <p class='indented'> Now we continue our journey into manipulating images by exploring the frequency domain. We
-        start by blurring an image, subtracting it from the original, and then adding it back to the original, which in
-        essence
-        is a high pass filter of the image (removing low frequencies).
-    </p>
-    <div class="image-wrapper indent-level-1" style="margin-bottom: 30px;">
+    <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/sharpen_taj.jpg" alt="Gaussian blur sweep" width=1000>
+            <img src="./media/20.jpg" alt="Edge Filter Sweep" width=350>
+            <img src="./media/danes_20_avg.jpg" alt="Edge Filter Sweep" width=350>
         </div>
     </div>
-
-    <p class='indented'> Then we can apply the high frequency back to
-        the original image to sharpen it. You can see that the bricks on the road and top of the building are more
-        defined.
-        <span class="highlight">Observation: using np.clip is critical to ensure that we are not paying attention to
-            negative values introduced by the high frequency data.
-        </span>
-    </p>
-    <div class="image-wrapper indent-level-1" style="margin-bottom: 50px;">
+    <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/sharpened_final.jpg" alt="Gaussian blur sweep" width=1000>
+            <img src="./media/25.jpg" alt="Edge Filter Sweep" width=350>
+            <img src="./media/danes_25_avg.jpg" alt="Edge Filter Sweep" width=350>
         </div>
     </div>
-
-    <p class='indented' style="text-align: center;"> We can now apply this technique to each of the RGB channels of the
-        image:
+    <p class='indented'> This is what the texture of my face looks when morphed into the average geometry.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/sharpen_amount_sweep.gif" alt="Gaussian blur sweep" width=300>
+            <img src="./media/alonso_danes_1.jpg" alt="Edge Filter Sweep" width=300>
         </div>
     </div>
-
-    <p class='indented' style="text-align: center;">We apply this same technique to the blurred image of Dante from Coco
-        on the left and see that we get decently close to restoring the image.
-        <span class="highlight">Observation: While sharpening does an incredible job for areas like the whiskers that
-            already had high frequency data, it does not do as well for the background which was very low frequency.
-            This is a great motivation for learning how to perform image manipulation in the frequency domain!
-        </span>
+    <p class='indented'> This is what it looks like when you morph the aaerage Danes point positions into my geometry.
     </p>
     <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Original Dante</div>
-            <img src="./media/dante.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Dante Blurred</div>
-            <img src="./media/dante_gauss.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item">
-            <img src="./media/dante_sharpen_amount_sweep.gif" alt="Dante original" width="280">
+        <div class="image-block">
+            <img src="./media/alonso_danes_2.jpg" alt="Edge Filter Sweep" width=300>
         </div>
     </div>
-    <hr>
-
-
-
-    <h3>Part 2.2: Hybrid Images</h3>
-
-    <p class='indented'> Hybrid images leverage the non-linear nature of human visual perception to create images that
-        change based on
-        viewing distance. By combining the low frequencies of one image with the high frequencies of another, we can
-        create
-        a single static image that appears differently when viewed up close versus from afar. <br> <br>The low
-        frequencies are
-        obtained by blurring the image, while the high frequencies can be extracted using two methods: subtracting a
-        blurred
-        version of the image from the original, or using an impulse filter (a filter with a center value of 1)
-        subtracted by
-        a Gaussian filter, as suggested in the SIGGRAPH 2006 "Hybrid Images" paper by Oliva, Torralba, and Schyns.
-        <br><br>
-        <span class="highlight">Observation: I did not see a noticable difference between using the suggested impulse
-            filter vs the high frequency filter using the difference of the original and blurred image. Perhaps this
-            image isn't complex enough to show the difference.
-        </span>
-    </p>
-    <div class="comparison-container" id="comparisonContainer" data-left-title="Gaussian" data-right-title="Impulse"
-        data-width="400" data-height="">
-        <img src="./media/hybrid_human_cat_gauss.jpg" alt="Gaussian" id="imgA">
-        <img src="./media/hybrid_human_cat_impulse.jpg" alt="Impulse" class="img-top" id="imgB">
-        <div class="divider" id="divider"></div>
-
-        <!-- Semi-transparent areas and labels -->
-        <div class="left-half">
-            <div class="label" id="leftLabel">A</div>
-        </div>
-        <div class="right-half">
-            <div class="label" id="rightLabel">B</div>
-        </div>
-    </div>
-
-    <hr>
-    <h3>Examples</h3>
-    <p class='indented' style="text-align: center;"> We apply the "Hybrid image" technique to two <br>
-        of Mr. Incredible's expressions from the Incredibles.
+    <h2>Part 5 - Caricatures: Extrapolating from the mean</h2>
+    <p class='indented'> Now that we have a linear interpolation between my face and the average face of the Danes
+        dataset, we can extrapolate from the mean face to create caricatures. Here is an example of what happens when
+        you set the parameter 't' to 1.5 (The morph is most distictive when the gif transitions back to the beginning):
     </p>
     <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"></div>
-            <img src="./media/hybrid_bob_impulse.jpg" alt="Dante original" width="350">
+        <div class="image-block">
+            <img src="./media/animated_morph6.gif" alt="Edge Filter Sweep" width=300>
+
         </div>
     </div>
 
-    <p class='indented' style="text-align: center;"> Here we break down the hybrid image into its frequency analysis:
-        </span>
+
+    <h2>Part 6 - Bells and Whistles</h2>
+    <p class='indented'> Using Google's Imagen, I created a small dataset of 5 images of older men, and then I morphed
+        my texture and geometry towards the mean face of the synthetic older dataset. Here is the result:
     </p>
     <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Original smile</div>
-            <img src="./media/hybrid_bob_1.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Frequency Analysis</div>
-            <img src="./media/hybrid_bob1_freq.jpg" alt="Dante original" width="235">
+        <div class="image-block">
+            <img src="./media/old/01.jpg" alt="Edge Filter Sweep" width=150>
+            <img src="./media/old/02.jpg" alt="Edge Filter Sweep" width=150>
+            <img src="./media/old/03.jpg" alt="Edge Filter Sweep" width=150>
+            <img src="./media/old/04.jpg" alt="Edge Filter Sweep" width=150>
+            <img src="./media/old/05.jpg" alt="Edge Filter Sweep" width=150>
         </div>
     </div>
     <br>
     <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">High frequency filter</div>
-            <img src="./media/hybrid_bob1_high_out.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Frequency Analysis</div>
-            <img src="./media/hybrid_bob1_high_freq.jpg" alt="Dante original" width="235">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Original yell</div>
-            <img src="./media/hybrid_bob_2.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Frequency Analysis</div>
-            <img src="./media/hybrid_bob2_freq.jpg" alt="Dante original" width="235">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Low frequency filter</div>
-            <img src="./media/hybrid_bob2_low_out.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Frequency Analysis</div>
-            <img src="./media/hybrid_bob2_low_freq.jpg" alt="Dante original" width="235">
-        </div>
-    </div>
-    <hr>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Example 2 - Jellyfish / Umbrella</div>
-            <img src="./media/hybrid_ella_impulse.jpg" alt="Dante original" width="400">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> High pass Jellyfish + Low pass umbrella </div>
-            <img src="./media/hybrid_ella_impulse_final.jpg" alt="Dante original" width="1000">
-        </div>
-    </div>
-    <hr>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Example 3 - Walter White and Ned Flanders. (this one worked less well) </div>
-            <span class="highlight">Speculation: My intuition says tha the contributing variables were to this image not
-                working well were: 1) The cartoon image was likely a poor choice given the lack of high
-                frequency data 2) Despite having conceptual similarities such as both characters having mustaches, a
-                button up shirt and similar shirt, the morphology of the objects are too different and features like the
-                eyes don't line up and create large swaths of value regions that conflict.
-            </span>
-            <img src="./media/hybrid_hank_ned_impulse.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> The input images were altered in photoshop to improve the results </div>
-            <img src="./media/hybrid_hank_ned_impulse_final.jpg" alt="Dante original" width="800">
-        </div>
-    </div>
-    <span class="highlight"> Bells and Whistles
-    </span>
-    <div class="image-text">I played around with the choice of color and greyscale for both the low and high
-        frequency images. From my experimentation, I found that color in the low pass is better than in the high pass
-        but this is only true when the colors of your two objects are close together.</div>
+        <div class="image-block">
+            <img src="./media/alonso_old_midway.jpg" alt="Edge Filter Sweep" width=300>
 
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Original Dante</div>
-            <img src="./media/hybrid_hank_ned_impulse.jpg" alt="Dante original" width="350">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Low Freq Color, High freq Greyscale</div>
-            <img src="./media/hybrid_hank_ned_impulse_color.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <hr>
-
-
-    <h3>Part 2.3: Gaussian and Laplacian Stacks</h3>
-
-    <p class='indented'> Given what we learned so far, we have all the available tools to do image blending that
-        is more sophisticated than just alpha blending. We can use the Gaussian and Laplacian stacks to blend images
-        to leverage the fact that human perception has an attention bias towards high frequencies. Let's use that
-        towards our advantage!
-        <br><br>
-        In order to achieve a multi frequency blending, we create a gaussian and Laplacian stack for each image and
-        then blend them together. The Laplacian stack is created by taking the difference between the Gaussian stack
-        and the next level of the Gaussian stack. This allows us to blend the images at different frequencies.
-        <br><br>
-        In essence, we are breaking up the image into different frequency bands and blending them together.
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> For example, for the following image </div>
-            <img src="./media/blend_1.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> We create the following increments of blur </div>
-            <img src="./media/blur_stack_1.jpg" alt="Dante original" width="1000">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> We compute the difference between the blur stages above and get the Laplacian
-                values.(We remap the -1 to 1 range to 0 to 1 for viewing purposes) </div>
-            <img src="./media/adding_sections.jpg" alt="Panther chameleon" width="1000">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> Then we can recompose the original image by taking the blurriest frame of the
-                gaussian, the laplacian stack and summing them all together. </div>
-            <img src="./media/laplacian_stack_1.gif" alt="Mandarin fish" width="350">
         </div>
     </div>
 
-
-
-
-    <p class='indented' style="text-align: center;">Now that we created the gaussian and laplacian stacks, let's blend
-        these two images
-        together:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Panther chameleon</div>
-            <img src="./media/blend_1.jpg" alt="Dante original" width="350">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Mandarin Fish</div>
-            <img src="./media/blend_2.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text"> Instead of using a sharp binary mask across all frequencies, we extract a
-                gaussian stack for the mask as well: </div>
-            <img src="./media/mask_gaussian_stack_1.jpg" alt="Dante original" width="1000">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Shown in red, you can see how the transition separating the two images is more
-                heavily blended as you get to the lower frequencies</div>
-            <img src="./media/adding_sections2.jpg" alt="Dante original" width="1000">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">And when you compose the image back together you get a very nice blend!</div>
-            <img src="./media/blend_out1.jpg" alt="Dante original" width="500">
-        </div>
-    </div>
-
-    <hr>
-    <h3>Additional Examples</h3>
-    <p class='indented' style="text-align: center;">Input images:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Jackson's chameleon</div>
-            <img src="./media/blend_4.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Rainbow Lorikeet</div>
-            <img src="./media/blend_5.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Mask</div>
-            <img src="./media/blend_6.jpg" alt="Dante original" width="250">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Final Blend</div>
-            <img src="./media/blend_out2.jpg" alt="Dante original" width="500">
-        </div>
-    </div>
-    <hr>
-
-    <p class='indented' style="text-align: center;">Example 2:
-    </p>
-
-    <hr>
-
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Zebra</div>
-            <img src="./media/blend_7.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Giraffe</div>
-            <img src="./media/blend_8.jpg" alt="Dante original" width="250">
-        </div>
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Mask</div>
-            <img src="./media/blend_9.jpg" alt="Dante original" width="250">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Final Blend</div>
-            <img src="./media/blend_out4.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <hr>
-    <p class='indented' style="text-align: center;">Example 3 - Orapple:
-    </p>
-    <hr>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Final Blend</div>
-            <img src="./media/orapple.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Orange Gaussian stack</div>
-            <img src="./media/blur_stack_3.jpg" alt="Dante original" width="900">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Orange Laplacian stack</div>
-            <img src="./media/laplacian_stack_2.jpg" alt="Dante original" width="700">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Mask Gaussian stack</div>
-            <img src="./media/blur_stack_4.jpg" alt="Dante original" width="900">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Final Blend</div>
-            <img src="./media/blended_blur_stack_2.jpg" alt="Dante original" width="900">
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1"></div>
-    <div class="image-item" style="margin: 9px;">
-        <div class="image-text">Laplacian stack</div>
-        <img src="./media/blended_laplace_stack_2.jpg" alt="Dante original" width="900">
-    </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-item" style="margin: 9px;">
-            <div class="image-text">Final Blend</div>
-            <img src="./media/orapple.jpg" alt="Dante original" width="350">
-        </div>
-    </div>
-    <hr>
-    <h2>Final thoughts</h2>
-    <p class='indented'> This project and the hands-on lectures revealed the incredible complexity that can arise from
-        simple signals interacting with eachother.
-        On a practical level I learned to be careful about how scaling the values of the images mattered a lot when the
-        range was negative vs positive, as well as being
-        very careful about when to use np.clip; sometimes it was critically necessary and other times it was throwing
-        away unwanted information. Throughout this project, I
-        kept thinking, this is so cool, "Why isn't there a Photoshop clone / blend brush that leverages the human
-        perceptual trick of focusing mostly on higher frequencies?!" </p>
     <footer>
         CS 280A - Project 2: Fun with Frequencies | Alonso Martinez
     </footer>
