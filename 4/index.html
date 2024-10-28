@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 280A - Project 3: Face Morphing and Modelling a Photo Collection | Alonso Martinez</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .comparison-container {
+            position: relative;
+            overflow: hidden;
+            cursor: ew-resize;
+            margin: 40px auto;
+            border: 2px solid #ddd;
+        }
+
+        .comparison-container img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Mask for the left (A) image */
+        .comparison-container .img-top {
+            clip: rect(0, 300px, 400px, 0);
+            /* Initial divider in the middle */
+        }
+
+        /* Semi-transparent background areas */
+        .comparison-container .left-half,
+        .comparison-container .right-half {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .comparison-container .left-half {
+            left: 0;
+            background-color: rgba(149, 149, 149, 0.7);
+            /* 50% opacity */
+        }
+
+        .comparison-container .right-half {
+            right: 0;
+            background-color: rgba(97, 97, 97, 0.424);
+            /* 20% opacity */
+        }
+
+        /* Text styling for A and B labels */
+        .comparison-container .label {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* The vertical divider */
+        .divider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background-color: #ffffff00;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+            transition: background-color 0.5s ease;
+        }
+
+        /* On hover, hide the background areas with a smooth transition */
+        .comparison-container:hover .left-half,
+        .comparison-container:hover .right-half {
+            opacity: 0;
+        }
+
+        /* On hover, the divider becomes more vibrant with smooth transition */
+        .comparison-container:hover .divider {
+            background-color: rgba(255, 255, 255, 0.347);
+        }
+
+        h1 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            margin-left: 40px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 21px;
+        }
+
+        p {
+            margin-left: 20px;
+        }
+
+        p.indented {
+            margin-left: 60px;
+            /* Match or adjust the indent to be in line with your needs */
+        }
+
+        p.indented2 {
+            margin-left: 120px;
+            /* Match or adjust the indent to be in line with your needs */
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: rgb(70, 101, 138);
+        }
+
+        img {
+            display: inline-block;
+            /* Ensures the image itself is treated as a block element for centering */
+            height: auto;
+            max-width: 100%;
+            /* Responsive behavior */
+        }
+
+        .pixelated {
+            display: inline-block;
+            /* Ensures the image itself is treated as a block element for centering */
+            height: auto;
+            max-width: 100%;
+            image-rendering: pixelated;
+            /* Ensures no interpolation for pixelated scaling */
+            image-rendering: -moz-crisp-edges;
+            /* Firefox */
+            image-rendering: crisp-edges;
+            /* Other browsers */
+        }
+
+        .displacement-matrix {
+            text-align: center;
+        }
+
+        .image-wrapper {
+            display: flex;
+            justify-content: center;
+            /* Center the image block horizontally */
+            margin-bottom: 40px;
+        }
+
+        /* Modifier for different indentation */
+        .image-wrapper.indent-level-1 {
+            margin-left: 60px;
+            margin-bottom: 0px;
+        }
+
+        .image-wrapper.indent-level-2 {
+            margin-left: 80px;
+        }
+
+        .image-block {
+            display: flex;
+            /* Allows images and text to appear side by side */
+            justify-content: center;
+            /* Centers content horizontally */
+            gap: 20px;
+            /* Adds space between images */
+        }
+
+        .image-wrapper {
+            text-align: center;
+            /* Optional: Centers the entire block of images */
+        }
+
+        .image-item {
+            display: flex;
+            flex-direction: column;
+            /* Makes text appear above the image */
+            align-items: center;
+            /* Centers the text and image horizontally */
+        }
+
+        .image-text {
+            margin-bottom: 10px;
+            /* Space between text and the image */
+        }
+
+        hr {
+            border: 1px solid #ccc;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>CS 280A Project 4A: Image rectification, Homographies, and Stitching Photo Mosaics</h1>
+    <h2>by Alonso Martinez</h2>
+
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/final_image_composite.jpg" alt="" width=950>
+        </div>
+    </div>
+    <h2>Part 1 - Shoot the pictures</h2>
+    <p class='indented'> When starting new projects, I like to ask myself two questions:
+    <ul class='indented' style="margin-left: 30px;">
+        <ol>
+            <li>Can I create a target / mock up of what I want quickly?</li>
+            <li>Before automating, could I perform this task myself?</li>
+        </ol>
+    </ul>
+    </p>
+    <p class='indented'>
+        This led me to create a mock up by manually correct perspective in Adobe Photoshop. From this I learned that:
+    </p>
+    <ul class='indented' style="margin-left: 30px;">
+        <ol>
+            <li> I would need to re-take the photos for this project. I had taken a series of three photos of difference
+                spaces, but post alignment, I realized thatthe middle photo was very small and created little overlap
+                with the others.</li>
+            <div class="image-wrapper indent-level-1">
+                <div class="image-block">
+                    <img src="./media/photoshop_panorama_comparison2.jpg" alt="" width=350>
+                </div>
+            </div>
+            <li> I would need need to compute the final resolution of the canvas based on the transformations of the
+                images. </li>
+            <li>I would need to reduce the size of the images to not have enormous final image (due to stretching).
+                Additionally, this would help with computation in later stages automatically finding point of
+                correspondance.</li>
+            <li>It made it clarified the areas of overlap between the images which would be useful for manually creating
+                correspondance points.
+            </li>
+        </ol>
+    </ul>
+    <h2>Part 2 - Recover Homographies</h2>
+    <p class='indented'> First I create correspondance between the original image and the desired image. Like the
+        perevious project, I chose to use Autodesk maya to place my points of correspondance. This is useful as it
+        allowed me to use sub-pixel accuracy. I then use the correspondance to compute the homography matrix.
+
+        The "computeH" function figures out the homography matrix H, which shows how points from one image line up with
+        points in another. Like past projects, I use Singular Value Decomposition (SVD) to solve for the
+        transformation. The key info comes from the last row of V^T, which is reshaped into a 3x3 matrix. After
+        normalizing it, you get the homography matrix that describes how to warp one image to match the other. Here is
+        the results:
+    </p>
+    <h2>Part 3 - Warp / Rectification of Images</h2>
+    <h3>Painting from Pixar's "Luca"</h3>
+    <p class='indented'> Since the target deformation wasn't square, I had to measure what were the ratios of the
+        sides for the target.
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Original </div>
+                <img src="./media/luca_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text">Warped</div>
+                <img src="./media/luca_target_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <br>
+                <div class="image-text">Expanded canvas warp </div>
+                <img src="./media/luca_warp.jpg" alt="" width="450" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <h3>Book Homography</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Original </div>
+                <img src="./media/book_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text">Warped</div>
+                <img src="./media/book_target_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <h2>Part 4 - Stitching Mosaics</h2>
+    <h3 style="text-align: center;">Original Images</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/Room_1.jpg" alt="" width=250>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/Room_2.jpg" alt="" width=250>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/Room_3.jpg" alt="" width=250>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Point correspondance</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/room1_corr.jpg" alt="" width=550>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/room2_corr.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Testing Alignment</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/room1_overlap.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Warp</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/room1_warp.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Warping alpha mask</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/room1_mask.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Testing mask on each side</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/final_image.jpg" alt="" width=550>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/final_image2.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Final Image</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./media/final_image_composite.jpg" alt="" width=1450>
+        </div>
+
+    </div>
+    <h2>Part 5 - Reflection</h2>
+    <p class='indented'> My favorite part of this project was starting to think about overspecified systems given and
+        making guesses based on the power of larger arounts of data. For the challenges at first my pixel splatting was
+        taking a long time and I couldn't figure out was happening and then I realized that my points of correspondance
+        were not in the same order. I also had to manually create the points of correspondance which was a bit tedious.
+        I can't wait for Project 4B to automate this and remove a lot of human error out of the equation.
+    </p>
+    <footer>
+        CS 280A - Intro to Computer Vision | Alonso Martinez
+    </footer>
+    <script>
+        function setLabelsAndSize(containerId) {
+            const container = document.getElementById(containerId);
+            const leftLabel = document.getElementById('leftLabel');
+            const rightLabel = document.getElementById('rightLabel');
+            const imgA = document.getElementById('imgA');
+            const imgB = document.getElementById('imgB');
+
+            // Get the titles from the data attributes
+            const leftTitle = container.getAttribute('data-left-title');
+            const rightTitle = container.getAttribute('data-right-title');
+
+            // Update the labels
+            leftLabel.textContent = leftTitle;
+            rightLabel.textContent = rightTitle;
+
+            // Get width and height from data attributes
+            let width = container.getAttribute('data-width');
+            let height = container.getAttribute('data-height');
+
+            // Get the original aspect ratio from the first image
+            const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
+
+            // If only width is provided, calculate the height based on the aspect ratio
+            if (width && !height) {
+                height = width / aspectRatio;
+            }
+
+            // If only height is provided, calculate the width based on the aspect ratio
+            if (!width && height) {
+                width = height * aspectRatio;
+            }
+
+            // Apply the width and height to the container
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
+        }
+
+        // Call the function to set custom titles and sizes
+        window.onload = function () {
+            setLabelsAndSize('comparisonContainer');
+        };
+
+        // Add mousemove functionality for the comparison
+        const comparisonContainer = document.getElementById('comparisonContainer');
+        const divider = document.getElementById('divider');
+        const imgTop = document.querySelector('.img-top');
+
+        comparisonContainer.addEventListener('mousemove', (event) => {
+            // Get the position of the mouse relative to the container
+            const rect = comparisonContainer.getBoundingClientRect();
+            const x = event.clientX - rect.left; // x position of the mouse inside the container
+
+            // Set the position of the divider
+            divider.style.left = x + 'px';
+
+            // Clip the top image to create the A/B effect
+            imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
+        });
+
+        comparisonContainer.addEventListener('mouseleave', () => {
+            // Reset the divider to the middle when the mouse leaves the container
+            const middle = comparisonContainer.offsetWidth / 2;
+            divider.style.left = middle + 'px';
+            imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
+        });
+    </script>
+
+</body>
+
+</html>
