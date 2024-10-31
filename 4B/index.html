@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 280A - Project 3: Face Morphing and Modelling a Photo Collection | Alonso Martinez</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .comparison-container {
+            position: relative;
+            overflow: hidden;
+            cursor: ew-resize;
+            margin: 40px auto;
+            border: 2px solid #ddd;
+        }
+
+        .comparison-container img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Mask for the left (A) image */
+        .comparison-container .img-top {
+            clip: rect(0, 300px, 400px, 0);
+            /* Initial divider in the middle */
+        }
+
+        /* Semi-transparent background areas */
+        .comparison-container .left-half,
+        .comparison-container .right-half {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .comparison-container .left-half {
+            left: 0;
+            background-color: rgba(149, 149, 149, 0.7);
+            /* 50% opacity */
+        }
+
+        .comparison-container .right-half {
+            right: 0;
+            background-color: rgba(97, 97, 97, 0.424);
+            /* 20% opacity */
+        }
+
+        /* Text styling for A and B labels */
+        .comparison-container .label {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* The vertical divider */
+        .divider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background-color: #ffffff00;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+            transition: background-color 0.5s ease;
+        }
+
+        /* On hover, hide the background areas with a smooth transition */
+        .comparison-container:hover .left-half,
+        .comparison-container:hover .right-half {
+            opacity: 0;
+        }
+
+        /* On hover, the divider becomes more vibrant with smooth transition */
+        .comparison-container:hover .divider {
+            background-color: rgba(255, 255, 255, 0.347);
+        }
+
+        h1 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            margin-left: 40px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 21px;
+        }
+
+        p {
+            margin-left: 20px;
+        }
+
+        p.indented {
+            margin-left: 60px;
+            /* Match or adjust the indent to be in line with your needs */
+        }
+
+        p.indented2 {
+            margin-left: 120px;
+            /* Match or adjust the indent to be in line with your needs */
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: rgb(70, 101, 138);
+        }
+
+        img {
+            display: inline-block;
+            /* Ensures the image itself is treated as a block element for centering */
+            height: auto;
+            max-width: 100%;
+            /* Responsive behavior */
+        }
+
+        .pixelated {
+            display: inline-block;
+            /* Ensures the image itself is treated as a block element for centering */
+            height: auto;
+            max-width: 100%;
+            image-rendering: pixelated;
+            /* Ensures no interpolation for pixelated scaling */
+            image-rendering: -moz-crisp-edges;
+            /* Firefox */
+            image-rendering: crisp-edges;
+            /* Other browsers */
+        }
+
+        .displacement-matrix {
+            text-align: center;
+        }
+
+        .image-wrapper {
+            display: flex;
+            justify-content: center;
+            /* Center the image block horizontally */
+            margin-bottom: 40px;
+        }
+
+        /* Modifier for different indentation */
+        .image-wrapper.indent-level-1 {
+            margin-left: 60px;
+            margin-bottom: 0px;
+        }
+
+        .image-wrapper.indent-level-2 {
+            margin-left: 80px;
+        }
+
+        .image-block {
+            display: flex;
+            /* Allows images and text to appear side by side */
+            justify-content: center;
+            /* Centers content horizontally */
+            gap: 20px;
+            /* Adds space between images */
+        }
+
+        .image-wrapper {
+            text-align: center;
+            /* Optional: Centers the entire block of images */
+        }
+
+        .image-item {
+            display: flex;
+            flex-direction: column;
+            /* Makes text appear above the image */
+            align-items: center;
+            /* Centers the text and image horizontally */
+        }
+
+        .image-text {
+            margin-bottom: 10px;
+            /* Space between text and the image */
+        }
+
+        hr {
+            border: 1px solid #ccc;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr 1fr;
+            gap: 10px;
+            /* Optional: space between elements */
+        }
+
+        .grid-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+        }
+
+
+        .grid-image {
+            width: 100%;
+            object-fit: contain;
+            /* Keeps images responsive */
+            /* Optional: Additional styling for pixelated images */
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>CS 280A Project 4B: Feature Matching for Autostitching</h1>
+    <h2>by Alonso Martinez</h2>
+
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/final_image_composite.jpg" alt="" width=950>
+        </div>
+    </div>
+    <p class='indented'> In the previus project we manually found corresponance points between two images, in order to
+        warp the perspective between them and create a mosaic. Now let's not waste time like chumps and compute the
+        correspondance as well! </p>
+    <h2>Part 1 - Detect corner features in an image</h2>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">We first begin by computing the Harris corners of an portait of Harris: </div>
+                <img src="./media/harris_corners.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Then we filter those interest points by taking the top 1k 'h scores'</div>
+                <img src="./media/filtered_harris_corners.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> The high degree of clustering causes issues with alignment because the
+                    potential overlap in the image might be a small<br> corner, therefore we use Adaptive Non-Maximal
+                    Suppression (ANMS) technique to find more uniform interest points. <br> (Number of
+                    interest points reduced for illustrative purposes)</div>
+                <img src="./media/anms_vectorized_filtered_corners.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <p class='indented'> ANMS picks important points in a picture by giving each one a “radius” that measures how far it
+        is from stronger points nearby. Only points with the largest radii are kept, which means we end up with the
+        strongest points that are also spread out, making it easier to line up or combine multiple pictures. </p>
+    <h2> Part 2- Extracting a Feature Descriptors</h2>
+    <p class='indented'></p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">For each of the coordinates, we find a a window of 40x40 pixels</div>
+                <img src="./media/harris_descriptors.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <p class='indented'></p>
+    <p class='indented'></p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Subsequently, each one of those 40x40 patches gets scaled to 8x8 patches using
+                    anti-aliasing.<br>This is useful for making the architecture more translation invariant.</div>
+                <img src="./media/harris_patches_overlay.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Then we bias/gain-normalize the patches using the following formula:</div>
+                <img src="./media/bias-gain-normalizer.jpg" alt="" width="150">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Which results in the following individual patches:</div>
+                <img src="./media/descriptor_patches.jpg" alt="" width="450">
+            </div>
+        </div>
+    </div>
+    <h3>Landscape mosaic</h3>
+    <p class='indented'>Luckily this technique is applicable outside the domain of photos of Kamala Harris. <br> Let's
+        use these technique for the utility of creating a stitched landscape mosaic of a room.
+        <br> <br> Here are the input images for the mosaic:
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Left image</div>
+                <img src="./media/Room_2.jpg" alt="" width="400">
+            </div>
+            <div class="image-item">
+                <div class="image-text">Middle image</div>
+                <img src="./media/Room_1.jpg" alt="" width="400">
+            </div>
+            <div class="image-item">
+                <div class="image-text">Right image</div>
+                <img src="./media/Room_3.jpg" alt="" width="400">
+            </div>
+        </div>
+    </div>
+    <p class='indented'> Previous alorithms applied to the room images result in the following correspondances:
+    </p>
+    <div class="grid-container">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">Harris Corners -></div>
+        <div class="grid-title">Filtered by h -></div>
+        <div class="grid-title">Filtered by ANMS</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">Left image</div>
+        <img src="./media/room2_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room2_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room2_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+
+        <div class="grid-title">Middle image</div>
+        <img src="./media/room1_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room1_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room1_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+
+        <div class="grid-title">Right image</div>
+        <img src="./media/room3_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room3_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+        <img src="./media/room3_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+    </div>
+    <p class='indented'> And their corresponding Feature Descriptors:
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Left image:</div>
+                <img src="./media/room2_descriptor_patches.jpg" alt="" width="800">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Middle image:</div>
+                <img src="./media/room1_descriptor_patches.jpg" alt="" width="800">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Right image:</div>
+                <img src="./media/room3_descriptor_patches.jpg" alt="" width="800">
+            </div>
+        </div>
+    </div>
+    <h2>Part 3- Feature Descriptor Matching</h2>
+    <p class='indented'> Now that we isolated interesting differentiable points in the image, we can start to
+        compare them to find the best matches. We do this by comparing the descriptors of the points in the two images
+        and finding the best matches. To find the matches, per patch we calculate the L2 distance (known as nearest
+        neighnor in Machine Learning) and store them in a sorted list. Instead of doing filtering based on global L2
+        distance between potential correspondances, we use the method described in
+        <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive Image Features from
+            Scale-Invariant Keypoints</a>. by David Lowe, we see that a better approach is to use the ratio of the
+        distances of the two best matches. If the ratio is less than 0.8, we consider the match to be valid. This in a
+        way gives "confidence score" in relation to the second best match.
+
+        <br><br>Surprisingly this algorithm finds some corresponsances despite knowing the true alignment would
+        require perspective warp and that this algorithm is neither rotation nor scale invariant.
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Lowe's matching algorithm</div>
+                <div class="image-text">(I lowered the point interest count to more easily spot corresponance) </div>
+                <img src="./media/room1_room2_matches.jpg" alt="" width="1200">
+            </div>
+        </div>
+    </div>
+    <h2>Part 4 - RANSAC</h2>
+    <p class='indented'>This could still use some improvement so let's ue RANSAC to find the best matches. Here are the
+        much improved results: </p>
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
+                <div class="image-text">(I lowered the point interest count to more easily spot corresponance) </div>
+                <img src="./media/room1_room2_ransac_matches.jpg" alt="" width="1200">
+            </div>
+        </div>
+    </div>
+    <p class='indented'> In reality, we use a much higher count of interest points to find a good homography. Here is
+        first the feature descriptor matching:
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> Lowe's matching algorithm</div>
+                <div class="image-text"></div>
+                <img src="./media/room1_room2_matches_real.jpg" alt="" width="1200">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"> <br>It seems close to 100% matching points! </div>
+                <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
+                <img src="./media/room1_room2_ransac_matches_real.jpg" alt="" width="1200">
+            </div>
+        </div>
+    </div>
+    <h3>Final result</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Result with Automatic alignment</div>
+                <img src="./media/Livingroom_mosaic.jpg" alt="" width="1500">
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Result with Manual alignment</div>
+                <img src="./media/final_image_composite.jpg" alt="" width="1500">
+            </div>
+        </div>
+    </div>
+    <br>
+    <h3>More Mosaics</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"></div>
+                <img src="./media/Lab_mosaic.jpg" alt="" width="1500">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text"></div>
+                <img src="./media/LabSheep_mosaic.jpg" alt="" width="1500">
+            </div>
+        </div>
+    </div>
+    <h2>Part 5 - Reflection</h2>
+    <p class='indented'> Non-standardization of X and Y order across functions is challengeing. aligning the warped
+        images and expanding canvas was hard.
+    </p>
+
+
+    <footer>
+        CS 280A - Intro to Computer Vision | Alonso Martinez
+    </footer>
+    <script>
+        function setLabelsAndSize(containerId) {
+            const container = document.getElementById(containerId);
+            const leftLabel = document.getElementById('leftLabel');
+            const rightLabel = document.getElementById('rightLabel');
+            const imgA = document.getElementById('imgA');
+            const imgB = document.getElementById('imgB');
+
+            // Get the titles from the data attributes
+            const leftTitle = container.getAttribute('data-left-title');
+            const rightTitle = container.getAttribute('data-right-title');
+
+            // Update the labels
+            leftLabel.textContent = leftTitle;
+            rightLabel.textContent = rightTitle;
+
+            // Get width and height from data attributes
+            let width = container.getAttribute('data-width');
+            let height = container.getAttribute('data-height');
+
+            // Get the original aspect ratio from the first image
+            const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
+
+            // If only width is provided, calculate the height based on the aspect ratio
+            if (width && !height) {
+                height = width / aspectRatio;
+            }
+
+            // If only height is provided, calculate the width based on the aspect ratio
+            if (!width && height) {
+                width = height * aspectRatio;
+            }
+
+            // Apply the width and height to the container
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
+        }
+
+        // Call the function to set custom titles and sizes
+        window.onload = function () {
+            setLabelsAndSize('comparisonContainer');
+        };
+
+        // Add mousemove functionality for the comparison
+        const comparisonContainer = document.getElementById('comparisonContainer');
+        const divider = document.getElementById('divider');
+        const imgTop = document.querySelector('.img-top');
+
+        comparisonContainer.addEventListener('mousemove', (event) => {
+            // Get the position of the mouse relative to the container
+            const rect = comparisonContainer.getBoundingClientRect();
+            const x = event.clientX - rect.left; // x position of the mouse inside the container
+
+            // Set the position of the divider
+            divider.style.left = x + 'px';
+
+            // Clip the top image to create the A/B effect
+            imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
+        });
+
+        comparisonContainer.addEventListener('mouseleave', () => {
+            // Reset the divider to the middle when the mouse leaves the container
+            const middle = comparisonContainer.offsetWidth / 2;
+            divider.style.left = middle + 'px';
+            imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
+        });
+    </script>
+
+</body>
+
+</html>
