@@ -244,17 +244,17 @@
 
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/final_image_composite.jpg" alt="" width=950>
+            <img src="./media/Livingroom_mosaic.jpg" alt="" width=1500>
         </div>
     </div>
-    <p class='indented'> In the previus project we manually found corresponance points between two images, in order to
-        warp the perspective between them and create a mosaic. Now let's not waste time like chumps and compute the
-        correspondance as well! </p>
+    <p class='indented'> In <a href="https://alonsorobots.github.io/4">Project 4A</a> we manually found
+        correspondence points between two images, in order to warp the perspective between them and create a mosaic. Now
+        let's not waste time like chumps and automatically compute the correspondance as well! </p>
     <h2>Part 1 - Detect corner features in an image</h2>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text">We first begin by computing the Harris corners of an portait of Harris: </div>
+                <div class="image-text">We first begin by computing the Harris corners of a portait of Harris: </div>
                 <img src="./media/harris_corners.jpg" alt="" width="450">
             </div>
         </div>
@@ -262,7 +262,8 @@
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text">Then we filter those interest points by taking the top 1k 'h scores'</div>
+                <div class="image-text">Then we filter those interest points by the weight of the 'h' scores and take
+                    the top 1k scores</div>
                 <img src="./media/filtered_harris_corners.jpg" alt="" width="450">
             </div>
         </div>
@@ -286,7 +287,7 @@
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text">For each of the coordinates, we find a a window of 40x40 pixels</div>
+                <div class="image-text">For each of the coordinates, we find a window of 40x40 pixels</div>
                 <img src="./media/harris_descriptors.jpg" alt="" width="450">
             </div>
         </div>
@@ -297,7 +298,9 @@
         <div class="image-block">
             <div class="image-item">
                 <div class="image-text">Subsequently, each one of those 40x40 patches gets scaled to 8x8 patches using
-                    anti-aliasing.<br>This is useful for making the architecture more translation invariant.</div>
+                    anti-aliasing.<br>This is useful for making the architecture more translation invariant. Here we see
+                    the patches applied back to the original image:
+                </div>
                 <img src="./media/harris_patches_overlay.jpg" alt="" width="450">
             </div>
         </div>
@@ -391,14 +394,13 @@
         </div>
     </div>
     <h2>Part 3- Feature Descriptor Matching</h2>
-    <p class='indented'> Now that we isolated interesting differentiable points in the image, we can start to
-        compare them to find the best matches. We do this by comparing the descriptors of the points in the two images
-        and finding the best matches. To find the matches, per patch we calculate the L2 distance (known as nearest
-        neighnor in Machine Learning) and store them in a sorted list. Instead of doing filtering based on global L2
-        distance between potential correspondances, we use the method described in
-        <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive Image Features from
-            Scale-Invariant Keypoints</a>. by David Lowe, we see that a better approach is to use the ratio of the
-        distances of the two best matches. If the ratio is less than 0.8, we consider the match to be valid. This in a
+    <p class='indented'> Now that we isolated interesting differentiable patches in the image, we can start to
+        compare them to each other to find correspondances. To find the matches, per patch we calculate the L2 distance
+        (known as nearest neighbor in Machine Learning) between all pairs of descriptors and store them in a sorted
+        list. Instead of doing filtering based on global L2 distance between potential correspondances, we use the
+        method described in <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive Image
+            Features from Scale-Invariant Keypoints</a>. by David Lowe in which we use the ratio of the distances of the
+        two best Nearest Neighbor matches. If the ratio is less than 0.8, we consider the match to be valid. This in a
         way gives "confidence score" in relation to the second best match.
 
         <br><br>Surprisingly this algorithm finds some corresponsances despite knowing the true alignment would
@@ -408,20 +410,20 @@
         <div class="image-block">
             <div class="image-item">
                 <div class="image-text"> Lowe's matching algorithm</div>
-                <div class="image-text">(I lowered the point interest count to more easily spot corresponance) </div>
+                <div class="image-text">(I lowered the point interest count to more easily spot correspondence) </div>
                 <img src="./media/room1_room2_matches.jpg" alt="" width="1200">
             </div>
         </div>
     </div>
     <h2>Part 4 - RANSAC</h2>
-    <p class='indented'>This could still use some improvement so let's ue RANSAC to find the best matches. Here are the
+    <p class='indented'>This could still use some improvement so let's use RANSAC to find the best matches. Here are the
         much improved results: </p>
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
                 <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
-                <div class="image-text">(I lowered the point interest count to more easily spot corresponance) </div>
+                <div class="image-text">(I lowered the point interest count to more easily spot correspondence) </div>
                 <img src="./media/room1_room2_ransac_matches.jpg" alt="" width="1200">
             </div>
         </div>
@@ -441,13 +443,16 @@
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text"> <br>It seems close to 100% matching points! </div>
+                <div class="image-text"> <br>Using RANSAC it seems close to 100% matching points! </div>
                 <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
                 <img src="./media/room1_room2_ransac_matches_real.jpg" alt="" width="1200">
             </div>
         </div>
     </div>
     <h3>Final result</h3>
+    <p class='indented'> We then compute the homography warp per each pair of correspondances and stitch the images
+        together. For the blending I used the same texture as in project4 which I think gives a nice result:
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -484,8 +489,12 @@
         </div>
     </div>
     <h2>Part 5 - Reflection</h2>
-    <p class='indented'> Non-standardization of X and Y order across functions is challengeing. aligning the warped
-        images and expanding canvas was hard.
+    <p class='indented'> My favorite part was seeing how powerful RANSAC is even without rotation or scale invariance in
+        the descriptors. Given we know for sure that to align the images it would require a perspective warp, it's
+        impressive it works. My suspicion is that this is mostly because of the translation invariance from blurring the
+        descriptors. Some challenges I had during this project were fighting with the non-standardization of X and Y
+        order across libraries. Surprisingly figuring out how to expand the canvas and align the multiple stitches was
+        harder than I thought it would be!.
     </p>
 
 
