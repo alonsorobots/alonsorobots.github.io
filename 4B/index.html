@@ -238,336 +238,495 @@
 </head>
 
 <body>
-
-    <h1>CS 280A Project 4B: Feature Matching for Autostitching</h1>
+    <h1>CS 280A Project 4: Mosaic Stitching</h1>
     <h2>by Alonso Martinez</h2>
-
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <img src="./media/Livingroom_mosaic.jpg" alt="" width=1500>
         </div>
     </div>
-    <p class='indented'> In <a href="https://alonsorobots.github.io/4">Project 4A</a> we manually found
-        correspondence points between two images, in order to warp the perspective between them and create a mosaic. Now
-        let's not waste time like chumps and automatically compute the correspondance as well! </p>
-    <h2>Part 1 - Detect corner features in an image</h2>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">We first begin by computing the Harris corners of a portait of Harris: </div>
-                <img src="./media/harris_corners.jpg" alt="" width="450">
-            </div>
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Then we filter those interest points by the weight of the 'h' scores and take
-                    the top 1k scores</div>
-                <img src="./media/filtered_harris_corners.jpg" alt="" width="450">
-            </div>
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> The high degree of clustering causes issues with alignment because the
-                    potential overlap in the image might be a small<br> corner, therefore we use Adaptive Non-Maximal
-                    Suppression (ANMS) technique to find more uniform interest points. <br> (Number of
-                    interest points reduced for illustrative purposes)</div>
-                <img src="./media/anms_vectorized_filtered_corners.jpg" alt="" width="450">
-            </div>
-        </div>
-    </div>
-    <p class='indented'> ANMS picks important points in a picture by giving each one a “radius” that measures how far it
-        is from stronger points nearby. Only points with the largest radii are kept, which means we end up with the
-        strongest points that are also spread out, making it easier to line up or combine multiple pictures. </p>
-    <h2> Part 2- Extracting a Feature Descriptors</h2>
-    <p class='indented'></p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">For each of the coordinates, we find a window of 40x40 pixels</div>
-                <img src="./media/harris_descriptors.jpg" alt="" width="450">
-            </div>
-        </div>
-    </div>
-    <p class='indented'></p>
-    <p class='indented'></p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Subsequently, each one of those 40x40 patches gets scaled to 8x8 patches using
-                    anti-aliasing.<br>This is useful for making the architecture more translation invariant. Here we see
-                    the patches applied back to the original image:
+    <h2>Part 1 - Shoot the pictures</h2>
+    <p class='indented'> When starting new projects, I like to ask myself two questions:
+    <ul class='indented' style="margin-left: 30px;">
+        <ol>
+            <li>Can I create a target / mock up of what I want quickly?</li>
+            <li>Before automating, could I perform this task myself?</li>
+        </ol>
+    </ul>
+    </p>
+    <p class='indented'>
+        This led me to create a mock up by manually correct perspective in Adobe Photoshop. From this I learned that:
+    </p>
+    <ul class='indented' style="margin-left: 30px;">
+        <ol>
+            <li> I would need to re-take the photos for this project. I had taken a series of three photos of difference
+                spaces, but post alignment, I realized that the middle photo was very small and created little overlap
+                with the others.</li>
+            <div class="image-wrapper indent-level-1">
+                <div class="image-block">
+                    <img src="./../4B/media/photoshop_panorama_comparison2.jpg" alt="" width=350>
                 </div>
-                <img src="./media/harris_patches_overlay.jpg" alt="" width="450">
             </div>
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Then we bias/gain-normalize the patches using the following formula:</div>
-                <img src="./media/bias-gain-normalizer.jpg" alt="" width="150">
-            </div>
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Which results in the following individual patches:</div>
-                <img src="./media/descriptor_patches.jpg" alt="" width="450">
-            </div>
-        </div>
-    </div>
-    <h3>Landscape mosaic</h3>
-    <p class='indented'>Luckily this technique is applicable outside the domain of photos of Kamala Harris. <br> Let's
-        use these technique for the utility of creating a stitched landscape mosaic of a room.
-        <br> <br> Here are the input images for the mosaic:
+            <li> I would need need to compute the final resolution of the canvas based on the transformations of the
+                images. </li>
+            <li>I would need to reduce the size of the images (overall resolution) to not have enormous final image (due
+                to stretching).
+                Additionally, this would help with computation in later stages automatically finding point of
+                correspondance.</li>
+            <li>It clarified the areas of overlap between the images which would be useful for manually creating
+                correspondance points.
+            </li>
+        </ol>
+    </ul>
+    <h2>Part 2 - Recover Homographies</h2>
+    <p class='indented'> First I create correspondance between the original image and the desired image. Like the
+        perevious project, I chose to use Autodesk maya to place my points of correspondance. This is useful as it
+        allowed me to use sub-pixel accuracy. I then use the correspondance to compute the homography matrix.
+
+        The "computeH" function figures out the homography matrix H, which shows how points from one image line up with
+        points in another. Like previous student projects, I use Singular Value Decomposition (SVD) to solve for the
+        transformation. The key info comes from the last row of V^T, which is reshaped into a 3x3 matrix. After
+        normalizing it, you get the homography matrix that describes how to warp one image to match the other. Here is
+        the results:
+    </p>
+    <h2>Part 3 - Warp / Rectification of Images</h2>
+    <h3>Painting from Pixar's "Luca"</h3>
+    <p class='indented'> Since the target deformation wasn't square, I had to measure what were the ratios of the
+        sides for the target.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text">Left image</div>
-                <img src="./media/Room_2.jpg" alt="" width="400">
+                <div class="image-text">Original </div>
+                <img src="./../4B/media/luca_corr.jpg" alt="" width="450" class="pixelated">
             </div>
             <div class="image-item">
-                <div class="image-text">Middle image</div>
-                <img src="./media/Room_1.jpg" alt="" width="400">
-            </div>
-            <div class="image-item">
-                <div class="image-text">Right image</div>
-                <img src="./media/Room_3.jpg" alt="" width="400">
+                <div class="image-text">Warped</div>
+                <img src="./../4B/media/luca_target_corr.jpg" alt="" width="450" class="pixelated">
             </div>
         </div>
     </div>
-    <p class='indented'> Previous alorithms applied to the room images result in the following correspondances:
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <br>
+                <div class="image-text">Expanded canvas warp </div>
+                <img src="./../4B/media/luca_warp.jpg" alt="" width="450" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <h3>Book Homography</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text">Original </div>
+                <img src="./../4B/media/book_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text">Warped</div>
+                <img src="./../4B/media/book_target_corr.jpg" alt="" width="450" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <h2>Part 4 - Stitching Mosaics</h2>
+    <h3 style="text-align: center;">Original Images</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/Room_2.jpg" alt="" width=250>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/Room_1.jpg" alt="" width=250>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/Room_3.jpg" alt="" width=250>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Point correspondance</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/room1_corr.jpg" alt="" width=550>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/room2_corr.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Testing Alignment</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/room1_overlap.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Warp</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/room1_warp.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Warping alpha mask</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/room1_mask.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Testing mask on each side</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/final_image.jpg" alt="" width=550>
+        </div>
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/final_image2.jpg" alt="" width=550>
+        </div>
+    </div>
+    <h3 style="text-align: center;">Final Image</h3>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 5px;">
+            <img src="./../4B/media/final_image_composite.jpg" alt="" width=1450>
+        </div>
+    </div>
+    <h2>Part 5 - Proj 4A Reflection</h2>
+    <p class='indented'> My favorite part of this project was starting to think about overspecified systems given and
+        making guesses based on the power of larger arounts of data. For the challenges at first my pixel splatting was
+        taking a long time and I couldn't figure out was happening and then I realized that my points of correspondance
+        were not in the same order. I also had to manually create the points of correspondance which was a bit tedious.
+        I can't wait for Project 4B to automate this and remove a lot of human error out of the equation.
     </p>
-    <div class="grid-container">
-        <!-- Top Titles -->
-        <div class="grid-title"></div> <!-- Empty space for alignment -->
-        <div class="grid-title">Harris Corners -></div>
-        <div class="grid-title">Filtered by h -></div>
-        <div class="grid-title">Filtered by ANMS</div>
-
-        <!-- Left Titles + Images for each row -->
-        <div class="grid-title">Left image</div>
-        <img src="./media/room2_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room2_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room2_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
-
-        <div class="grid-title">Middle image</div>
-        <img src="./media/room1_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room1_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room1_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
-
-        <div class="grid-title">Right image</div>
-        <img src="./media/room3_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room3_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-        <img src="./media/room3_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
-    </div>
-    <p class='indented'> And their corresponding Feature Descriptors:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Left image:</div>
-                <img src="./media/room2_descriptor_patches.jpg" alt="" width="800">
+    <h1>Project 4B - Feature Matching for Autostitching</h2>
+        <h2>Part 1 - Detect corner features in an image</h2>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">We first begin by computing the Harris corners of a portait of Harris:
+                    </div>
+                    <img src="./media/harris_corners.jpg" alt="" width="450">
+                </div>
             </div>
         </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Middle image:</div>
-                <img src="./media/room1_descriptor_patches.jpg" alt="" width="800">
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">Then we filter those interest points by the weight of the 'h' scores and
+                        take
+                        the top 1k scores</div>
+                    <img src="./media/filtered_harris_corners.jpg" alt="" width="450">
+                </div>
             </div>
         </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Right image:</div>
-                <img src="./media/room3_descriptor_patches.jpg" alt="" width="800">
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> The high degree of clustering causes issues with alignment because the
+                        potential overlap in the image might be a small<br> corner, therefore we use Adaptive
+                        Non-Maximal
+                        Suppression (ANMS) technique to find more uniform interest points. <br> (Number of
+                        interest points reduced for illustrative purposes)</div>
+                    <img src="./media/anms_vectorized_filtered_corners.jpg" alt="" width="450">
+                </div>
             </div>
         </div>
-    </div>
-    <h2>Part 3- Feature Descriptor Matching</h2>
-    <p class='indented'> Now that we isolated interesting differentiable patches in the image, we can start to
-        compare them to each other to find correspondances. To find the matches, per patch we calculate the L2 distance
-        (known as nearest neighbor in Machine Learning) between all pairs of descriptors and store them in a sorted
-        list. Instead of doing filtering based on global L2 distance between potential correspondances, we use the
-        method described in <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive Image
-            Features from Scale-Invariant Keypoints</a>. by David Lowe in which we use the ratio of the distances of the
-        two best Nearest Neighbor matches. If the ratio is less than 0.8, we consider the match to be valid. This in a
-        way gives "confidence score" in relation to the second best match.
+        <p class='indented'> ANMS picks important points in a picture by giving each one a “radius” that measures how
+            far it
+            is from stronger points nearby. Only points with the largest radii are kept, which means we end up with the
+            strongest points that are also spread out, making it easier to line up or combine multiple pictures. </p>
+        <h2> Part 2- Extracting a Feature Descriptors</h2>
+        <p class='indented'></p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">For each of the coordinates, we find a window of 40x40 pixels</div>
+                    <img src="./media/harris_descriptors.jpg" alt="" width="450">
+                </div>
+            </div>
+        </div>
+        <p class='indented'></p>
+        <p class='indented'></p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">Subsequently, each one of those 40x40 patches gets scaled to 8x8 patches
+                        using
+                        anti-aliasing.<br>This is useful for making the architecture more translation invariant. Here we
+                        see
+                        the patches applied back to the original image:
+                    </div>
+                    <img src="./media/harris_patches_overlay.jpg" alt="" width="450">
+                </div>
+            </div>
+        </div>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Then we bias/gain-normalize the patches using the following formula:</div>
+                    <img src="./media/bias-gain-normalizer.jpg" alt="" width="150">
+                </div>
+            </div>
+        </div>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Which results in the following individual patches:</div>
+                    <img src="./media/descriptor_patches.jpg" alt="" width="450">
+                </div>
+            </div>
+        </div>
+        <h3>Landscape mosaic</h3>
+        <p class='indented'>Luckily this technique is applicable outside the domain of photos of Kamala Harris. <br>
+            Let's
+            use these technique for the utility of creating a stitched landscape mosaic of a room.
+            <br> <br> Here are the input images for the mosaic:
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">Left image</div>
+                    <img src="./media/Room_2.jpg" alt="" width="400">
+                </div>
+                <div class="image-item">
+                    <div class="image-text">Middle image</div>
+                    <img src="./media/Room_1.jpg" alt="" width="400">
+                </div>
+                <div class="image-item">
+                    <div class="image-text">Right image</div>
+                    <img src="./media/Room_3.jpg" alt="" width="400">
+                </div>
+            </div>
+        </div>
+        <p class='indented'> Previous alorithms applied to the room images result in the following correspondances:
+        </p>
+        <div class="grid-container">
+            <!-- Top Titles -->
+            <div class="grid-title"></div> <!-- Empty space for alignment -->
+            <div class="grid-title">Harris Corners -></div>
+            <div class="grid-title">Filtered by h -></div>
+            <div class="grid-title">Filtered by ANMS</div>
 
-        <br><br>Surprisingly this algorithm finds some corresponsances despite knowing the true alignment would
-        require perspective warp and that this algorithm is neither rotation nor scale invariant.
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Lowe's matching algorithm</div>
-                <div class="image-text">(I lowered the point interest count to more easily spot correspondence) </div>
-                <img src="./media/room1_room2_matches.jpg" alt="" width="1200">
+            <!-- Left Titles + Images for each row -->
+            <div class="grid-title">Left image</div>
+            <img src="./media/room2_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room2_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room2_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+
+            <div class="grid-title">Middle image</div>
+            <img src="./media/room1_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room1_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room1_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+
+            <div class="grid-title">Right image</div>
+            <img src="./media/room3_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room3_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
+            <img src="./media/room3_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+        </div>
+        <p class='indented'> And their corresponding Feature Descriptors:
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Left image:</div>
+                    <img src="./media/room2_descriptor_patches.jpg" alt="" width="800">
+                </div>
             </div>
         </div>
-    </div>
-    <h2>Part 4 - RANSAC</h2>
-    <p class='indented'>This could still use some improvement so let's use RANSAC to find the best matches. Here are the
-        much improved results: </p>
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
-                <div class="image-text">(I lowered the point interest count to more easily spot correspondence) </div>
-                <img src="./media/room1_room2_ransac_matches.jpg" alt="" width="1200">
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Middle image:</div>
+                    <img src="./media/room1_descriptor_patches.jpg" alt="" width="800">
+                </div>
             </div>
         </div>
-    </div>
-    <p class='indented'> In reality, we use a much higher count of interest points to find a good homography. Here is
-        first the feature descriptor matching:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> Lowe's matching algorithm</div>
-                <div class="image-text"></div>
-                <img src="./media/room1_room2_matches_real.jpg" alt="" width="1200">
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Right image:</div>
+                    <img src="./media/room3_descriptor_patches.jpg" alt="" width="800">
+                </div>
             </div>
         </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"> <br>Using RANSAC it seems close to 100% matching points! </div>
-                <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
-                <img src="./media/room1_room2_ransac_matches_real.jpg" alt="" width="1200">
+        <h2>Part 3- Feature Descriptor Matching</h2>
+        <p class='indented'> Now that we isolated interesting differentiable patches in the image, we can start to
+            compare them to each other to find correspondances. To find the matches, per patch we calculate the L2
+            distance
+            (known as nearest neighbor in Machine Learning) between all pairs of descriptors and store them in a sorted
+            list. Instead of doing filtering based on global L2 distance between potential correspondances, we use the
+            method described in <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive
+                Image
+                Features from Scale-Invariant Keypoints</a>. by David Lowe in which we use the ratio of the distances of
+            the
+            two best Nearest Neighbor matches. If the ratio is less than 0.8, we consider the match to be valid. This in
+            a
+            way gives "confidence score" in relation to the second best match.
+
+            <br><br>Surprisingly this algorithm finds some corresponsances despite knowing the true alignment would
+            require perspective warp and that this algorithm is neither rotation nor scale invariant.
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Lowe's matching algorithm</div>
+                    <div class="image-text">(I lowered the point interest count to more easily spot correspondence)
+                    </div>
+                    <img src="./media/room1_room2_matches.jpg" alt="" width="1200">
+                </div>
             </div>
         </div>
-    </div>
-    <h3>Final result</h3>
-    <p class='indented'> We then compute the homography warp per each pair of correspondances and stitch the images
-        together. For the blending I used the same texture as in project4 which I think gives a nice result:
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Result with Automatic alignment</div>
-                <img src="./media/Livingroom_mosaic.jpg" alt="" width="1500">
+        <h2>Part 4 - RANSAC</h2>
+        <p class='indented'>This could still use some improvement so let's use RANSAC to find the best matches. Here are
+            the
+            much improved results: </p>
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
+                    <div class="image-text">(I lowered the point interest count to more easily spot correspondence)
+                    </div>
+                    <img src="./media/room1_room2_ransac_matches.jpg" alt="" width="1200">
+                </div>
             </div>
         </div>
-    </div>
-    <br>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Result with Manual alignment</div>
-                <img src="./media/final_image_composite.jpg" alt="" width="1500">
+        <p class='indented'> In reality, we use a much higher count of interest points to find a good homography. Here
+            is
+            first the feature descriptor matching:
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> Lowe's matching algorithm</div>
+                    <div class="image-text"></div>
+                    <img src="./media/room1_room2_matches_real.jpg" alt="" width="1200">
+                </div>
             </div>
         </div>
-    </div>
-    <br>
-    <h3>More Mosaics</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"></div>
-                <img src="./media/Lab_mosaic.jpg" alt="" width="1500">
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"> <br>Using RANSAC it seems close to 100% matching points! </div>
+                    <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
+                    <img src="./media/room1_room2_ransac_matches_real.jpg" alt="" width="1200">
+                </div>
             </div>
         </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text"></div>
-                <img src="./media/LabSheep_mosaic.jpg" alt="" width="1500">
+        <h3>Final result</h3>
+        <p class='indented'> We then compute the homography warp per each pair of correspondances and stitch the images
+            together. For the blending I used the same texture as in project4 which I think gives a nice result:
+        </p>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">Result with Automatic alignment</div>
+                    <img src="./media/Livingroom_mosaic.jpg" alt="" width="1500">
+                </div>
             </div>
         </div>
-    </div>
-    <h2>Part 5 - Reflection</h2>
-    <p class='indented'> My favorite part was seeing how powerful RANSAC is even without rotation or scale invariance in
-        the descriptors. Given we know for sure that to align the images it would require a perspective warp, it's
-        impressive it works. My suspicion is that this is mostly because of the translation invariance from blurring the
-        descriptors. Some challenges I had during this project were fighting with the non-standardization of X and Y
-        order across libraries. Surprisingly figuring out how to expand the canvas and align the multiple stitches was
-        harder than I thought it would be!.
-    </p>
+        <br>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text">Result with Manual alignment</div>
+                    <img src="./media/final_image_composite.jpg" alt="" width="1500">
+                </div>
+            </div>
+        </div>
+        <br>
+        <h3>More Mosaics</h3>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"></div>
+                    <img src="./media/Lab_mosaic.jpg" alt="" width="1500">
+                </div>
+            </div>
+        </div>
+        <div class="image-wrapper indent-level-1">
+            <div class="image-block">
+                <div class="image-item">
+                    <div class="image-text"></div>
+                    <img src="./media/LabSheep_mosaic.jpg" alt="" width="1500">
+                </div>
+            </div>
+        </div>
+        <h2>Part 5 - Reflection</h2>
+        <p class='indented'> My favorite part was seeing how powerful RANSAC is even without rotation or scale
+            invariance in
+            the descriptors. Given we know for sure that to align the images it would require a perspective warp, it's
+            impressive it works. My suspicion is that this is mostly because of the translation invariance from blurring
+            the
+            descriptors. Some challenges I had during this project were fighting with the non-standardization of X and Y
+            order across libraries. Surprisingly figuring out how to expand the canvas and align the multiple stitches
+            was
+            harder than I thought it would be!
+        </p>
 
 
-    <footer>
-        CS 280A - Intro to Computer Vision | Alonso Martinez
-    </footer>
-    <script>
-        function setLabelsAndSize(containerId) {
-            const container = document.getElementById(containerId);
-            const leftLabel = document.getElementById('leftLabel');
-            const rightLabel = document.getElementById('rightLabel');
-            const imgA = document.getElementById('imgA');
-            const imgB = document.getElementById('imgB');
+        <footer>
+            CS 280A - Intro to Computer Vision | Alonso Martinez
+        </footer>
+        <script>
+            function setLabelsAndSize(containerId) {
+                const container = document.getElementById(containerId);
+                const leftLabel = document.getElementById('leftLabel');
+                const rightLabel = document.getElementById('rightLabel');
+                const imgA = document.getElementById('imgA');
+                const imgB = document.getElementById('imgB');
 
-            // Get the titles from the data attributes
-            const leftTitle = container.getAttribute('data-left-title');
-            const rightTitle = container.getAttribute('data-right-title');
+                // Get the titles from the data attributes
+                const leftTitle = container.getAttribute('data-left-title');
+                const rightTitle = container.getAttribute('data-right-title');
 
-            // Update the labels
-            leftLabel.textContent = leftTitle;
-            rightLabel.textContent = rightTitle;
+                // Update the labels
+                leftLabel.textContent = leftTitle;
+                rightLabel.textContent = rightTitle;
 
-            // Get width and height from data attributes
-            let width = container.getAttribute('data-width');
-            let height = container.getAttribute('data-height');
+                // Get width and height from data attributes
+                let width = container.getAttribute('data-width');
+                let height = container.getAttribute('data-height');
 
-            // Get the original aspect ratio from the first image
-            const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
+                // Get the original aspect ratio from the first image
+                const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
 
-            // If only width is provided, calculate the height based on the aspect ratio
-            if (width && !height) {
-                height = width / aspectRatio;
+                // If only width is provided, calculate the height based on the aspect ratio
+                if (width && !height) {
+                    height = width / aspectRatio;
+                }
+
+                // If only height is provided, calculate the width based on the aspect ratio
+                if (!width && height) {
+                    width = height * aspectRatio;
+                }
+
+                // Apply the width and height to the container
+                container.style.width = `${width}px`;
+                container.style.height = `${height}px`;
             }
 
-            // If only height is provided, calculate the width based on the aspect ratio
-            if (!width && height) {
-                width = height * aspectRatio;
-            }
+            // Call the function to set custom titles and sizes
+            window.onload = function () {
+                setLabelsAndSize('comparisonContainer');
+            };
 
-            // Apply the width and height to the container
-            container.style.width = `${width}px`;
-            container.style.height = `${height}px`;
-        }
+            // Add mousemove functionality for the comparison
+            const comparisonContainer = document.getElementById('comparisonContainer');
+            const divider = document.getElementById('divider');
+            const imgTop = document.querySelector('.img-top');
 
-        // Call the function to set custom titles and sizes
-        window.onload = function () {
-            setLabelsAndSize('comparisonContainer');
-        };
+            comparisonContainer.addEventListener('mousemove', (event) => {
+                // Get the position of the mouse relative to the container
+                const rect = comparisonContainer.getBoundingClientRect();
+                const x = event.clientX - rect.left; // x position of the mouse inside the container
 
-        // Add mousemove functionality for the comparison
-        const comparisonContainer = document.getElementById('comparisonContainer');
-        const divider = document.getElementById('divider');
-        const imgTop = document.querySelector('.img-top');
+                // Set the position of the divider
+                divider.style.left = x + 'px';
 
-        comparisonContainer.addEventListener('mousemove', (event) => {
-            // Get the position of the mouse relative to the container
-            const rect = comparisonContainer.getBoundingClientRect();
-            const x = event.clientX - rect.left; // x position of the mouse inside the container
+                // Clip the top image to create the A/B effect
+                imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
+            });
 
-            // Set the position of the divider
-            divider.style.left = x + 'px';
-
-            // Clip the top image to create the A/B effect
-            imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
-        });
-
-        comparisonContainer.addEventListener('mouseleave', () => {
-            // Reset the divider to the middle when the mouse leaves the container
-            const middle = comparisonContainer.offsetWidth / 2;
-            divider.style.left = middle + 'px';
-            imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
-        });
-    </script>
+            comparisonContainer.addEventListener('mouseleave', () => {
+                // Reset the divider to the middle when the mouse leaves the container
+                const middle = comparisonContainer.offsetWidth / 2;
+                divider.style.left = middle + 'px';
+                imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
+            });
+        </script>
 
 </body>
 
