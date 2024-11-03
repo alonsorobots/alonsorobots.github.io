@@ -255,7 +255,7 @@
     </ul>
     </p>
     <p class='indented'>
-        This led me to create a mock up by manually correct perspective in Adobe Photoshop. From this I learned that:
+        This led me to create a mock up by manually correcting perspective in Adobe Photoshop. From this I learned that:
     </p>
     <ul class='indented' style="margin-left: 30px;">
         <ol>
@@ -267,26 +267,26 @@
                     <img src="./../4B/media/photoshop_panorama_comparison2.jpg" alt="" width=350>
                 </div>
             </div>
-            <li> I would need need to compute the final resolution of the canvas based on the transformations of the
+            <li> I would need to compute the final resolution of the canvas based on the transformations of the
                 images. </li>
             <li>I would need to reduce the size of the images (overall resolution) to not have enormous final image (due
                 to stretching).
-                Additionally, this would help with computation in later stages automatically finding point of
-                correspondance.</li>
-            <li>It clarified the areas of overlap between the images which would be useful for manually creating
-                correspondance points.
+                Additionally, this would help with computation in later stages automatically finding points of
+                correspondence.</li>
+            <li>It clarified the areas of overlap between the images which would be useful for useful for manually
+                creating correspondence points.
             </li>
         </ol>
     </ul>
     <h2>Part 2 - Recover Homographies</h2>
-    <p class='indented'> First I create correspondance between the original image and the desired image. Like the
-        perevious project, I chose to use Autodesk maya to place my points of correspondance. This is useful as it
-        allowed me to use sub-pixel accuracy. I then use the correspondance to compute the homography matrix.
+    <p class='indented'> First I create correspondence between the original image and the desired image. Like the
+        previous project, I chose to use Autodesk Maya to place my points of correspondence. This is useful as it
+        allowed me to use sub-pixel accuracy. I then use the correspondence to compute the homography matrix.
 
         The "computeH" function figures out the homography matrix H, which shows how points from one image line up with
         points in another. Like previous student projects, I use Singular Value Decomposition (SVD) to solve for the
         transformation. The key info comes from the last row of V^T, which is reshaped into a 3x3 matrix. After
-        normalizing it, you get the homography matrix that describes how to warp one image to match the other. Here is
+        normalizing it, you get the homography matrix that describes how to warp one image to match the other. Here are
         the results:
     </p>
     <h2>Part 3 - Warp / Rectification of Images</h2>
@@ -341,7 +341,7 @@
             <img src="./../4B/media/Room_3.jpg" alt="" width=250>
         </div>
     </div>
-    <h3 style="text-align: center;">Point correspondance</h3>
+    <h3 style="text-align: center;">Point correspondence</h3>
     <div class="image-wrapper indent-level-1">
         <div class="image-block" style="margin-right: 5px;">
             <img src="./../4B/media/room1_corr.jpg" alt="" width=550>
@@ -385,9 +385,10 @@
     </div>
     <h2>Part 5 - Proj 4A Reflection</h2>
     <p class='indented'> My favorite part of this project was starting to think about overspecified systems given and
-        making guesses based on the power of larger arounts of data. For the challenges at first my pixel splatting was
-        taking a long time and I couldn't figure out was happening and then I realized that my points of correspondance
-        were not in the same order. I also had to manually create the points of correspondance which was a bit tedious.
+        making guesses based on the power of larger amounts of data. For the challenges at first my pixel splatting was
+        taking a long time and I couldn't figure out what was happening, and then I realized that my points of
+        correspondence
+        were not in the same order. I also had to manually create the points of correspondence which was a bit tedious.
         I can't wait for Project 4B to automate this and remove a lot of human error out of the equation.
     </p>
     <h1>Project 4B - Feature Matching for Autostitching</h2>
@@ -490,7 +491,7 @@
                 </div>
             </div>
         </div>
-        <p class='indented'> Previous alorithms applied to the room images result in the following correspondances:
+        <p class='indented'> Previous alorithms applied to the room images result in the following correspondences:
         </p>
         <div class="grid-container">
             <!-- Top Titles -->
@@ -543,10 +544,10 @@
         </div>
         <h2>Part 3- Feature Descriptor Matching</h2>
         <p class='indented'> Now that we isolated interesting differentiable patches in the image, we can start to
-            compare them to each other to find correspondances. To find the matches, per patch we calculate the L2
+            compare them to each other to find correspondences. To find the matches, per patch we calculate the L2
             distance
             (known as nearest neighbor in Machine Learning) between all pairs of descriptors and store them in a sorted
-            list. Instead of doing filtering based on global L2 distance between potential correspondances, we use the
+            list. Instead of doing filtering based on global L2 distance between potential correspondences, we use the
             method described in <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive
                 Image
                 Features from Scale-Invariant Keypoints</a>. by David Lowe in which we use the ratio of the distances of
@@ -606,7 +607,7 @@
             </div>
         </div>
         <h3>Final result</h3>
-        <p class='indented'> We then compute the homography warp per each pair of correspondances and stitch the images
+        <p class='indented'> We then compute the homography warp per each pair of correspondences and stitch the images
             together. For the blending I used the same texture as in project4 which I think gives a nice result:
         </p>
         <div class="image-wrapper indent-level-1">
