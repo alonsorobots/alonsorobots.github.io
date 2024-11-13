@@ -112,6 +112,10 @@
             font-size: 21px;
         }
 
+        ul.indented {
+            margin-left: 20px;
+        }
+
         p {
             margin-left: 20px;
         }
@@ -121,7 +125,8 @@
             /* Match or adjust the indent to be in line with your needs */
         }
 
-        p.indented2 {
+        p.indented2,
+        ol.indented2 {
             margin-left: 120px;
             /* Match or adjust the indent to be in line with your needs */
         }
@@ -214,10 +219,61 @@
         .grid-container {
             display: grid;
             grid-template-columns: auto 1fr 1fr 1fr 1fr;
-            grid-template-rows: auto 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr 1fr;
             gap: 10px;
             width: 800px;
             margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .grid-container2 {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 10px;
+            width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .grid-container3 {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr 1fr;
+            gap: 10px;
+            width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .grid-container4 {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr;
+            gap: 10px;
+            width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .grid-container5 {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 10px;
+            width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .grid-container6 {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr 1fr;
+            grid-template-rows: auto 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            width: 600px;
+            margin: 0 auto;
+            padding-bottom: 40px;
         }
 
         .grid-title {
@@ -247,14 +303,21 @@
         </div>
     </div>
     <h2>Intro</h2>
-    <p class='indented'> Intro to section...
+    <p class='indented'> We begin our journey into neural generative models with Diffusion models. In this exciting
+        project we leverage a pretrained model from DeepFloyd to generate images from inputs such as: text prompts,
+        images, or pure RGB noise. Leveraging the pre-trained weights, we manually implement iterative diffusion
+        denoising, Classifier-Free Guidance (CFG), and enhance the capabilities of the model via image-to-image
+        translation, hole filling (inpainting), and explore how to achieve results similar to that of <a
+            href="https://dangeng.github.io/visual_anagrams/" target="_blank">Visual Anagrams</a> (Geng et al., 2024)
     </p>
+    <br>
 
-    <h2>Part 1 - Setup</h2>
-    <h2>1.1 - Implementing the Forward Process</h2>
-    <p class='indented'> I chose ramdom seed 400 for the following images:
+    <h2>Setup</h2>
+    <p class='indented'> Utilizing DeepFloyd's <b>Stage 1</b> function allows us to take the <u>text prompts</u> inputs
+        and generate <u>image</u> outputs. Subsequently <b>Stage 2</b> of the model we can implement super-resolution of
+        our generated images. <span style="color:grey;">(YOUR_SEED = 400)</span>
     </p>
-
+    <br>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -271,19 +334,28 @@
             </div>
         </div>
     </div>
-    <p class='indented'> First we need to create a function which allows us to add noise to an image. Given we are using
-        a pre-trained model from DeepFloyd, we need also need to adhere to two constraints: 1) the noise schedule they
-        used to train the model (look up table found within alphas_cumprod), and 2) the number of steps in which they
-        trained the model (0-999 steps)
+    <br>
+    <p class='indented'> We notice that the model is able to generate images that are quite close to the text prompt.
+        However, these iamges were cherry-picked as the model is not perfect and can generate images that are not quite
+        what we expect. We also notice a propotional initial correlation between the quality of the image and
+        <code>num_inference_steps</code>.
+        <br><br>
+    <h2> Part 1: Sampling Loops </h2>
+    <h2>1.1 - Implementing the Forward Process</h2>
+    <p class='indented'> First we being by creating our own forward pass that can add noise to an image. Given we are
+        using a pre-trained model from DeepFloyd, we need also need to adhere to two constraints: 1) The non-linear
+        noise schedule they used to train the model (using a look up table found within <code>alphas_cumprod</code>),
+        and 2) The number of discrete steps the model was trained with: 1000 steps (<code>t</code> values of 0-999)
     </p>
     <p class='indented'>
         More formally you aren't actually adding noise to the image, but rather blending between a noisy image and a
-        clean image. Now unlike pervious projects were we blended the images like this: (A_img * selector) +
+        predicted clean image. Unlike pervious projects were we blended the images like this: (A_img * selector) +
         ((1-selector) * B_img), in this case we square root the selector making the relationship not linear: (A_img *
         torch.sqrt(selector)) + ((1 - torch.sqrt(selector)) * B_img). The deviation of A and B are scaled down by the
         selector, but then added together. 'scaling' here is not referring to image size, but individual pixel values.
         Not yet quite sure why at the moment this non-linear relationship is better.
     </p>
+    <br>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -292,607 +364,962 @@
             </div>
         </div>
     </div>
+    <br>
     <p class='indented'>
         Of note ist that that the formula ∈ ~ N(0,1) does not mean that the noise generated is of range 0-1, but rather
-        that the noise is of 1 standard deviation (genearally values of -4 to 4).
+        that the noise is of 1 standard deviation (genearally values of -4 to 4). Here are the results from the forward
+        function at the corresponding values:
     </p>
-    <p class='indented'>
-        Here are the results from the forward function at the corresponding values:
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">original</div>
+                <img src="./../5/media/berk_predict_noise_1.png" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">t = 250</div>
+                <img src="./../5/media/noise_250.png" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">t = 500</div>
+                <img src="./../5/media/noise_500.png" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">t = 750</div>
+                <img src="./../5/media/noise_750.png" alt="" width="150" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br><br>
+    <h2>1.2 Classical Denoising</h2>
+    <p class='indented'> Before overcomplicating things, one should always evaluate the simple solution: "Can we remove
+        the noise with convolved Gaussian filers instead of Machine Learning models?" The short answer is "not well
+        enough".<br><br>
+        We manually tune the kernel size and sigma trying to strike the balance between getting rid of the noise while
+        not losing too much detail in the original image. Here are the results:
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
                 <div class="image-text" style="font-weight: bold;">t = 250</div>
-                <img src="./../5/media/noise_250.png" alt="" width="250" class="pixelated">
+                <img src="./../5/media/noise_250.png" alt="" width="150" class="pixelated">
             </div>
             <div class="image-item">
                 <div class="image-text" style="font-weight: bold;">t = 500</div>
-                <img src="./../5/media/noise_500.png" alt="" width="250" class="pixelated">
+                <img src="./../5/media/noise_500.png" alt="" width="150" class="pixelated">
             </div>
             <div class="image-item">
                 <div class="image-text" style="font-weight: bold;">t = 750</div>
-                <img src="./../5/media/noise_750.png" alt="" width="250" class="pixelated">
+                <img src="./../5/media/noise_750.png" alt="" width="150" class="pixelated">
             </div>
         </div>
     </div>
-    <h2>1.2 Classical Denoising</h2>
-    <p class='indented'> The naive question is, can we remove the noise without Machine Learning models? The short
-        answer is
-        yes, but it's not well enough. Here are the noisy outputs with a convolved gaussian filter which was hand turned
-        in order to minimize the added noise:
+    <br>
+    <p class='indented' style="text-align: center; max-width: 600px; margin: 0 auto;">
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text" style="font-weight: bold;">kernel_size = 9, sigma = 2</div>
-                <img src="./../5/media/blurred_noise_250.png" alt="" width="250" class="pixelated">
+                <div class="image-text" style="font-weight: bold;">kernel_size = 9<br> sigma = 2</div>
+                <img src="./../5/media/blurred_noise_250.png" alt="" width="150" class="pixelated">
             </div>
             <div class="image-item">
-                <div class="image-text" style="font-weight: bold;">kernel_size = 11, sigma = 5</div>
-                <img src="./../5/media/blurred_noise_500.png" alt="" width="250" class="pixelated">
+                <div class="image-text" style="font-weight: bold;">kernel_size = 11<br> sigma = 5</div>
+                <img src="./../5/media/blurred_noise_500.png" alt="" width="150" class="pixelated">
             </div>
             <div class="image-item">
-                <div class="image-text" style="font-weight: bold;">kernel_size = 13, sigma = 5</div>
-                <img src="./../5/media/blurred_noise_750.png" alt="" width="250" class="pixelated">
+                <div class="image-text" style="font-weight: bold;">kernel_size = 13<br> sigma = 5</div>
+                <img src="./../5/media/blurred_noise_750.png" alt="" width="150" class="pixelated">
             </div>
         </div>
     </div>
-    <p class='indented' style="text-align: center;"> Despite tricks like subtracting one gaussian level vs another and
-        adding in the <br>sharpness to the original image, we still cannot hallucinate the detail in the original image
+    <br>
+    <p class='indented' style="text-align: center; max-width: 900px; margin: 0 auto;"> Now let's apply utilize we
+        learned in project 2 by applying a <a href="https://alonsorobots.github.io/2" target="_blank">sharpening
+            filter</a> to bring back detail by subtracting one gaussian level vs another and adding in the sharpness to
+        the original image:
     </p>
     <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-top: -10px;">
-            <img src="./../5/media/sharpening_filter.jpg" alt="" width=1000 >
+        <div class="image-block">
+            <img src="./../5/media/sharpening_filter.jpg" alt="" width=600>
         </div>
     </div>
-    <div class="grid-container">
+    <p class='indented' style="text-align: center; max-width: 600px; margin: 0 auto;"> Unfortunately the infromation has
+        been lost and cannot be recovered without some digital creativity. We will explore this in the next section.
+    </p>
+    <br><br><br>
+    <h2>1.3 Diffusion One-Step Denoising</h2>
+    <p class='indented' style="text-align: center; max-width: 920px; margin: 0 auto;"> To solve this problem we can
+        utilize the unreasonable effectiveness of diffusion models and large scale datasets and compute to hallucinate
+        the data lost by projecting the known pixels back into the manifold of images found in the dataset. In this
+        section we do <b>single shot</b> prediction of what the noise is in the image and compute how to retrieve an
+        estimation of the original clean image:
+    </p>
+    <br>
+    <div class="grid-container6">
         <!-- Top Titles -->
         <div class="grid-title"></div> <!-- Empty space for alignment -->
-        <div class="grid-title">Original image -></div>
-        <div class="grid-title">Noised image -></div>
-        <div class="grid-title">Predicted noise</div>
-        <div class="grid-title">Predicted original</div>
+        <div class="grid-title">t = 250</div>
+        <div class="grid-title">t = 500</div>
+        <div class="grid-title">t = 750</div>
 
         <!-- Left Titles + Images for each row -->
-        <div class="grid-title">t = 250</div>
+        <div class="grid-title">Original image</div>
         <img src="./media/berk_predict_noise_1.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_2.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_3.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_4.png" alt="" class="grid-image pixelated">
-
-        <div class="grid-title">t = 500</div>
         <img src="./media/berk_predict_noise_5.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_6.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_7.png" alt="" class="grid-image pixelated">
-        <img src="./media/berk_predict_noise_8.png" alt="" class="grid-image pixelated">
-
-        <div class="grid-title">t = 750</div>
         <img src="./media/berk_predict_noise_9.png" alt="" class="grid-image pixelated">
+
+        <div class="grid-title">Noised image</div>
+        <img src="./media/berk_predict_noise_2.png" alt="" class="grid-image pixelated">
+        <img src="./media/berk_predict_noise_6.png" alt="" class="grid-image pixelated">
         <img src="./media/berk_predict_noise_10.png" alt="" class="grid-image pixelated">
+
+        <div class="grid-title">Predicted noise</div>
+        <img src="./media/berk_predict_noise_3.png" alt="" class="grid-image pixelated">
+        <img src="./media/berk_predict_noise_7.png" alt="" class="grid-image pixelated">
         <img src="./media/berk_predict_noise_11.png" alt="" class="grid-image pixelated">
+
+        <div class="grid-title">Predicted original</div>
+        <img src="./media/berk_predict_noise_4.png" alt="" class="grid-image pixelated">
+        <img src="./media/berk_predict_noise_8.png" alt="" class="grid-image pixelated">
         <img src="./media/berk_predict_noise_12.png" alt="" class="grid-image pixelated">
     </div>
-
-
-
-
-
-
-
-
-    <br><br><br><br><br><br><br><br><br><br><br><br>
-
-
-
-
-
-    <p class='indented'> When starting new projects, I like to ask myself two questions:
-    <ul class='indented' style="margin-left: 30px;">
-        <ol>
-            <li>Can I create a target / mock up of what I want quickly?</li>
-            <li>Before automating, could I perform this task myself?</li>
-        </ol>
-    </ul>
+    <p class='indented' style="text-align: center; max-width: 900px; margin: 0 auto;"> The only downside to the <b>
+            single shot denoising</b>this
+        approach is that as shown in the images above, <u>The greater the noise in the image, the more
+            the model struggles to predict the noise and causes blurrying in the output</u>. We will tackle this in the
+        next
+        section where we iteratively reduce the noise in multiple diffusion steps.
     </p>
+    <br><br>
+    <h2>1.4 Iterative Diffusion Denoising</h2>
+    <p class='indented' style="text-align; max-width: 1000px; margin: 0 auto;"> Instead of the single shot
+        approach of predicting noise, we break this up into itertive denoising of the image. My intuition here is that
+        this architecture enduces the model to think in terms of coarse to fine detail. <br><br>
+
+        In the section below, we compare the iterative diffusion, single shot diffusion and the simple blur approach. We
+        see that the diffusion approachs are generally much better than the blur approach and further that the iterative
+        diffusion approach restored additional details in the image; For example the definition in the foliage in the
+        background of the image. Given that the information is actually lost, the retoration process of the iterative
+        diffusion HAS to hallucinate the detail, leading to some creative interpretations of the original image.
+    </p>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/berk_original.jpg" alt="" width="150">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Iterative diffusion</div>
+                <img src="./../5/media/berk_iter_step_32.jpg" alt="" width="150">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">One shot diffusion</div>
+                <img src="./../5/media/berk_predict_noise_12.png" alt="" width="150">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Blur denoise</div>
+                <img src="./../5/media/berk_blur_filtered.jpg" alt="" width="150">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noisy Campanile<br> t=690</div>
+                <img src="./../5/media/berk_iter_step_10.jpg" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noisy Campanile<br> t=540</div>
+                <img src="./../5/media/berk_iter_step_15.jpg" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noisy Campanile<br> t=390</div>
+                <img src="./../5/media/berk_iter_step_20.jpg" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noisy Campanile<br> t=140</div>
+                <img src="./../5/media/berk_iter_step_25.jpg" alt="" width="150" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noisy Campanile<br> t=90</div>
+                <img src="./../5/media/berk_iter_step_30.jpg" alt="" width="150" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Incremental diffusion denoising</div>
+                <img src="./../5/media/berk_iter.gif" alt="" width="250" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">+ Stage 2 Super resolution</div>
+                <img src="./../5/media/berk_stage_2.jpg" alt="" width="250">
+            </div>
+        </div>
+    </div>
+    <br><br><br>
+    <h2>1.5 Diffusion Model Sampling</h2>
+
     <p class='indented'>
-        This led me to create a mock up by manually correcting perspective in Adobe Photoshop. From this I learned
-        that:
+        Instead of sampling from an existing image, we can hallucinate images from scratch by sampling from pure noise.
+
+        My initial observation is that the the <u>lower the stride → the richer the image is</u>. Often a high stride
+        (less iterative steps total) result
+        in solid black or purple colored results. All images are enhanced used using super resolution.
     </p>
-    <ul class='indented' style="margin-left: 30px;">
-        <ol>
-            <li> I would need to re-take the photos for this project. I had taken a series of three photos of
-                difference
-                spaces, but post alignment, I realized that the middle photo was very small and created little
-                overlap
-                with the others.</li>
-            <div class="image-wrapper indent-level-1">
-                <div class="image-block">
-                    <img src="./../5/media/photoshop_panorama_comparison2.jpg" alt="" width=350>
-                </div>
+    <div class="grid-container2">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">Sample 1</div>
+        <div class="grid-title">Sample 2</div>
+        <div class="grid-title">Sample 3</div>
+        <div class="grid-title">Sample 4</div>
+        <div class="grid-title">Sample 5</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">stride = 1</div>
+        <img src="./media/random_10_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_9_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_7_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_12_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_17_hires.jpg" alt="" class="grid-image">
+
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/random_lowiter2_0_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_lowiter_2_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_lowiter_3_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_lowiter2_16_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_lowiter2_5_hires.jpg" alt="" class="grid-image">
+
+    </div>
+    <br><br>
+    <h2>1.6 Classifier-Free Guidance (CFG)</h2>
+    <p class='indented'>
+        We enhance the controlability of our generative model via the technique of <a
+            href="https://arxiv.org/abs/2207.12598" target="_blank">Classifier-Free Guidance (CFG)</a>, which in a way
+        gives us a control knob to adjust the influence of the text prompt on the generated image. <br><br> Given that
+        our model has the capability to "see" which part of noise looks like a <u>given text prompt</u>, we can compute
+        the delta between a <b>user given text</b> prompt and an <b>empty text prompt</b>, scale that delta by the
+        <code>cfg-scale</code>, then add it to the unconditional noise. <br><br>
+
+        The truly <b>exciting concept</b> ⭐ is that you can extrapolate outside of the manifold of images in the
+        original dataset
+        by choosing a <code>CFG</code> values higher than 1! Here you can see that CFG = 7 is literally giving you
+        other-worldy results: (I guess this alternate world is very purple) 😊
+    </p>
+    <br>
+    <div class="grid-container2">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">Sample 1</div>
+        <div class="grid-title">Sample 2</div>
+        <div class="grid-title">Sample 3</div>
+        <div class="grid-title">Sample 4</div>
+        <div class="grid-title">Sample 5</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">CFG = 2</div>
+        <img src="./media/random_CFG2_7_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG2_5_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG2_2_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG2_3_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG2_4_hires.jpg" alt="" class="grid-image">
+
+
+        <div class="grid-title">CFG = 7</div>
+        <img src="./media/random_CFG_0_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG_8_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG_2_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG_5_hires.jpg" alt="" class="grid-image">
+        <img src="./media/random_CFG_16_hires.jpg" alt="" class="grid-image">
+
+    </div>
+    <h2> 1.7 Image-to-image Translation </h2>
+    <p class=indent>
+        Now that we know how to project images and noise into the manifold of known images, let's <b>explore the
+            manifold</b> ⭐ a
+        bit more. A simple and philosophically intersting question we can ask is: <b>What are some things that the model
+            thinks is visually similar to my input image?</b>.<br><br>
+
+        More technically, we project our input image into the manifold and explore the area around it via two variables:
+        1) <u>Controlling the initial amount of noise</u> in the input image via <b>i_start</b> and
+        2) <u>The number of incremental diffusion steps</u> (which allow it to walk further away from the original
+        noise).<br><br>
+
+        The images below how the model hallucinates images that are visually similar to the input image. In practice we
+        see that the lower the <code>i_start</code> and <code>stride</code>, the furhter away we are to a visual
+        similary to the input image. What is non the less beautiful to see what visual associations the model has with
+        the input image.
+    </p>
+    <br>
+    <div class="grid-container3">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">i_start 1</div>
+        <div class="grid-title">i_start 3</div>
+        <div class="grid-title">i_start 4</div>
+        <div class="grid-title">i_start 7</div>
+        <div class="grid-title">i_start 10</div>
+        <div class="grid-title">i_start 20</div>
+        <div class="grid-title">original</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_20.jpg" alt="" class="grid-image">
+        <img src="./media/campanile_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 15</div>
+        <img src="./media/im2im3_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im3_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im3_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im3_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im3_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im3_20.jpg" alt="" class="grid-image">
+        <img src="./media/campanile_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 7</div>
+        <img src="./media/im2im4_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im4_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im4_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im4_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im4_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im4_20.jpg" alt="" class="grid-image">
+        <img src="./media/campanile_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 1</div>
+        <img src="./media/im2im2_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im2_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im2_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im2_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im2_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im2_20.jpg" alt="" class="grid-image">
+        <img src="./media/campanile_original.jpg" alt="" class="grid-image">
+    </div>
+    <br>
+    <h3>Additional input images</h3>
+    <p class='indented2'> Let's see more results with some additional input images. (The stride was kept at 30 for all
+        images)
+
+    </p>
+    <div class="grid-container3">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">i_start 1</div>
+        <div class="grid-title">i_start 3</div>
+        <div class="grid-title">i_start 4</div>
+        <div class="grid-title">i_start 7</div>
+        <div class="grid-title">i_start 10</div>
+        <div class="grid-title">i_start 20</div>
+        <div class="grid-title">original</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_photo_1_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_1_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_1_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_1_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_1_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_1_20.jpg" alt="" class="grid-image">
+        <img src="./media/photo_1_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_photo_4_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_4_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_4_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_4_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_4_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_4_20.jpg" alt="" class="grid-image">
+        <img src="./media/photo_4_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_photo_6_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_6_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_6_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_6_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_6_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_6_20.jpg" alt="" class="grid-image">
+        <img src="./media/photo_6_original.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_photo_7_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_7_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_7_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_7_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_7_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_photo_7_20.jpg" alt="" class="grid-image">
+        <img src="./media/photo_7_original.jpg" alt="" class="grid-image">
+    </div>
+    <br><br>
+    <h2>1.7.1 Editing Hand-Drawn and Web Images</h2>
+    <h3>Web Images</h3>
+
+    <p class=indented2> Another fantastic application we can explore is how to interpolate between two concepts such as
+        "realistic" to "cartoony". We achieve this by using the text prompt <code>"a high quality photo"</code> (which
+        implies a certain degree if realism) and then using a strong <code>CFG</code> value.
+    </p>
+    <div class="grid-container4">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">i_start 1</div>
+        <div class="grid-title">i_start 3</div>
+        <div class="grid-title">i_start 4</div>
+        <div class="grid-title">i_start 7</div>
+        <div class="grid-title">i_start 10</div>
+        <div class="grid-title">i_start 20</div>
+        <div class="grid-title">original</div>
+
+        <!-- Left Titles + Images for each row -->
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_drawing_1_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_1_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_1_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_1_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_1_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_1_20.jpg" alt="" class="grid-image">
+        <img src="./media/drawing_1.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_drawing_2_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_2_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_2_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_2_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_2_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_2_20.jpg" alt="" class="grid-image">
+        <img src="./media/drawing_2.jpg" alt="" class="grid-image">
+    </div>
+    <p class="indented2"> We see an incredible result! In the first row, between the <code>i_start</code> values of 4
+        and 10 we see
+        that the model arrived at a very similar generalization of the 'realism / cartoony' axis as seen in the book by
+        Scott McCloud, <a href="https://en.wikipedia.org/wiki/Understanding_Comics" target="_blank">"Understanding
+            Comics"</a>. </p>
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Incremental diffusion denoising</div>
+                <img src="./../5/media/ScottMcloud.png" alt="" width="800">
             </div>
-            <li> I would need to compute the final resolution of the canvas based on the transformations of the
-                images. </li>
-            <li>I would need to reduce the size of the images (overall resolution) to not have enormous final image
-                (due
-                to stretching).
-                Additionally, this would help with computation in later stages automatically finding points of
-                correspondence.</li>
-            <li>It clarified the areas of overlap between the images which would be useful for useful for manually
-                creating correspondence points.
-            </li>
-        </ol>
+        </div>
+    </div>
+    <br><br>
+    <h3>Hand drawn</h3>
+    <p class="indented2"> Some additional inputs from hand drawn images. You can see that for the first result it
+        struggles to project
+        this imaginary creature into the manifold of known images. The second image is a bit more successful.
+    </p>
+    <div class="grid-container4">
+        <!-- Top Titles -->
+        <div class="grid-title"></div> <!-- Empty space for alignment -->
+        <div class="grid-title">i_start 1</div>
+        <div class="grid-title">i_start 3</div>
+        <div class="grid-title">i_start 4</div>
+        <div class="grid-title">i_start 7</div>
+        <div class="grid-title">i_start 10</div>
+        <div class="grid-title">i_start 20</div>
+        <div class="grid-title">original</div>
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_drawing_3_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_3_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_3_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_3_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_3_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_3_20.jpg" alt="" class="grid-image">
+        <img src="./media/drawing_3.jpg" alt="" class="grid-image">
+
+        <div class="grid-title">stride = 30</div>
+        <img src="./media/im2im_drawing_5_1.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_5_3.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_5_5.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_5_7.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_5_10.jpg" alt="" class="grid-image">
+        <img src="./media/im2im_drawing_5_20.jpg" alt="" class="grid-image">
+        <img src="./media/drawing_5.jpg" alt="" class="grid-image">
+    </div>
+    <br><br>
+    <h3>Stroke based editing</h3>
+    <p class="indented2"> Using an input image as control, you can make some super rough visual edits to the image and
+        hallucinate variations. In the first example we add a moon to the image and in the second example we add a
+        river.
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/pic_2_1.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Added stroke drawn moon</div>
+                <img src="./../5/media/pic_2_2.jpg" alt="" width="200">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 1</div>
+                <img src="./../5/media/im2im_drawing2_2_1.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 3</div>
+                <img src="./../5/media/im2im_drawing2_2_3.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 4</div>
+                <img src="./../5/media/im2im_drawing2_2_5.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 7</div>
+                <img src="./../5/media/im2im_drawing2_2_7.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 11n</div>
+                <img src="./../5/media/im2im_drawing2_2_10.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 20</div>
+                <img src="./../5/media/im2im_drawing2_2_20.jpg" alt="" width="200">
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"><br>Original</div>
+                <img src="./../5/media/pic_1_1.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Added stroke drawn<br>river and bushes</div>
+                <img src="./../5/media/pic_1_2.jpg" alt="" width="200">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 1</div>
+                <img src="./../5/media/im2im_drawing2_1_1.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 3</div>
+                <img src="./../5/media/im2im_drawing2_1_3.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 4</div>
+                <img src="./../5/media/im2im_drawing2_1_5.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 7</div>
+                <img src="./../5/media/im2im_drawing2_1_7.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 11n</div>
+                <img src="./../5/media/im2im_drawing2_1_10.jpg" alt="" width="200">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 20</div>
+                <img src="./../5/media/im2im_drawing2_1_20.jpg" alt="" width="200">
+            </div>
+        </div>
+    </div>
+    <br><br><br>
+    <h2> 1.7.2 Inpainting </h2>
+
+    <p class=indent>
+        An emergent capability of this architecture is "hole filling" masks in images, known as <b>inpainting</b>.
+        This is achieved by replacing the masked part of the pixels with the original image at each step of the
+        diffusion. This forces the system to use the context of the original photo and inegrate it into the hallucinated
+        parts.
+    </p>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/blend_4_1.jpg" alt="" width="250">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Mask</div>
+                <img src="./../5/media/inpaint_4_mask.jpg" alt="" width="250">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Applied Mask</div>
+                <img src="./../5/media/inpaint_4_maskapp.jpg" alt="" width="250">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Inpainted</div>
+                <img src="./../5/media/inpaint_5_4.gif" alt="" width="250" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Inpainted hiRes</div>
+                <img src="./../5/media/inpaint5_4_hi.jpg" alt="" width="250">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <h3> Applying to hybrid images</h3>
+    <p class="indented2">
+        I was naturally curious how the inpaniting woudl work on the texture hybrid images from <a
+            href="https://alonsorobots.github.io/2/">project 2</a>. I think most of the images are an improvement! 😊
+    </p>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Hybrid Original</div>
+                <img src="./../5/media/blend_1_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Mask</div>
+                <img src="./../5/media/blend_1_2.jpg" alt="" width="256">
+            </div>
+
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Inpainted</div>
+                <img src="./../5/media/inpaint_4_1.gif" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Inpainted hiRes</div>
+                <img src="./../5/media/inpaint4_1_hi.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/blend_2_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/blend_2_2.jpg" alt="" width="256">
+            </div>
+
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/inpaint_1_2.gif" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/inpaint1_2_hi.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/blend_3_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/blend_3_2.jpg" alt="" width="256">
+            </div>
+
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/inpaint_1_3.gif" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/inpaint1_3_hi.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <br><br> <br>
+    <h2> 1.7.3 Text-Conditional Image-to-image Translation
+    </h2>
+    <p class="indented">
+        The other critical degree of <u>controlability</u> for this generative video language model is the 'languge'
+        itself
+        via the <b>text promps</b>. We can see that we can interploate between to locations in the manifold, one given
+        by an input image and the other given by a text prompt. One easy way to understand what is happening in the
+        images below is to think that when the amount of noise on the original image is high, it can get closer to the
+        location of the text prompt, and the less noise the more it has to stick to what it already has (since it can't
+        dramatically alter the image.)
+    </p>
+    <br>
+    <p class="indented2" style="text-align: center;">
+        <b>Interpolation between the text prompt: "a pencil" and an image of a the Capmanile at UC Berkeley.</b>
+    </p>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 1</div>
+                <img src="./../5/media/txtCond2_1_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 3</div>
+                <img src="./../5/media/txtCond2_3_5.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 4</div>
+                <img src="./../5/media/txtCond2_5_5.jpg" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 7</div>
+                <img src="./../5/media/txtCond2_7_3.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 10</div>
+                <img src="./../5/media/txtCond2_10_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 20</div>
+                <img src="./../5/media/txtCond2_20_2.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/campanile_original.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <br><br>
+
+    <p class="indented2" style="text-align: center;">
+        <b>Interpolation between the text prompt: "a dog" and an image of rocks.</b>
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 1</div>
+                <img src="./../5/media/txtCon_Dog_1_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 3</div>
+                <img src="./../5/media/txtCon_Dog_3_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 4</div>
+                <img src="./../5/media/txtCon_Dog_5_2.jpg" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 7</div>
+                <img src="./../5/media/txtCon_Dog_7_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 10</div>
+                <img src="./../5/media/txtCon_Dog_10_3.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 20</div>
+                <img src="./../5/media/txtCon_Dog_20_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/textCond_6.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <p class="indented2" style="text-align: center;">
+        <b>Interpolation between the text prompt: "a dog" and an image of cat.</b>
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 1</div>
+                <img src="./../5/media/txtCon_Dog2_1_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 3</div>
+                <img src="./../5/media/txtCon_Dog2_3_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 4</div>
+                <img src="./../5/media/txtCon_Dog2_5_2.jpg" alt="" width="256" class="pixelated">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 7</div>
+                <img src="./../5/media/txtCon_Dog2_10_1.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 10</div>
+                <img src="./../5/media/txtCon_Dog2_7_6.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">i_start 20</div>
+                <img src="./../5/media/txtCon_Dog2_20_2.jpg" alt="" width="256">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Original</div>
+                <img src="./../5/media/textCond_1.jpg" alt="" width="256">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <h2> 1.8 Visual Anagrams</h2>
+    <p class="indented">
+        Similar to Mexican artist Octavio Ocampo's remarkable surrealist paintings from the 1970s, which reveal
+        different images depending on the viewer's perspective, we will use our diffusion generative model to create
+        dual-meaning illustrations. To achieve this, we will implement techniques from the <a
+            href="https://dangeng.github.io/visual_anagrams/" target="_blank">Visual Anagrams</a> paper (Geng
+        et al., 2024).
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="gap: 80px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">"General’s Family"</div>
+                <img src="./../5/media/Octavio1.jpg" alt="" width="310">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">"Visions of Quixote"</div>
+                <img src="./../5/media/Octavio3.jpg" alt="" width="350">
+            </div>
+        </div>
+    </div>
+    <h3> Rotating Anagrams</h3>
+    <p class="indented2">
+        In order to achieve this illusion of dual meaning, during each iteration of the diffusion process, we follow the
+        following steps:
+    </p>
+    <ol class="indented2">
+        <li>Make two copies of the current noisy image (orig_noise_A, orig_noise_B)</li>
+        <li>Nudge orig_noise_A towards "text prompt A"</li>
+        <li>Rotate orig_noise_B by 180 degrees</li>
+        <li>Average orig_noise_A and orig_noise_B</li>
+    </ol>
+    <p class="indented2">
+        This surprisngly simple techniques yield some incredibly creative and striking!
+    </p>
+    <p class="indented2" style="text-align: center;">
+        <b>"an oil painting of an old man" </b> &rarr; <b>"an oil painting of people around a campfire"</b>
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/VisAn_rot_1.gif" alt="" width="400">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/VisAn_rot_2.gif" alt="" width="400">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/VisAn_rot_3.gif" alt="" width="400">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;"></div>
+                <img src="./../5/media/VisAn_rot_4.gif" alt="" width="400">
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+    <h2>Part 2 - Bells and Whistles</h2>
+    <ul class="indented">
+        <li> Used super resolution</li>
+        <li> Animated diffusion steps for gifs</li>
+        <li> Animated gifs to better communicate results</li>
+        <li> Did logo for class</li>
+        <li> I did more examples for outputs like 1.7, 1.8, 1.9</li>
     </ul>
-    <h2>Part 2 - Recover Homographies</h2>
-    <p class='indented'> First I create correspondence between the original image and the desired image. Like the
-        previous project, I chose to use Autodesk Maya to place my points of correspondence. This is useful as it
-        allowed me to use sub-pixel accuracy. I then use the correspondence to compute the homography matrix.
 
-        The "computeH" function figures out the homography matrix H, which shows how points from one image line up
-        with
-        points in another. Like previous student projects, I use Singular Value Decomposition (SVD) to solve for the
-        transformation. The key info comes from the last row of V^T, which is reshaped into a 3x3 matrix. After
-        normalizing it, you get the homography matrix that describes how to warp one image to match the other. Here
-        are
-        the results:
+
+    <h2>Final thoughts</h2>
+    <p class=indent>
+        I particularly enjoyed feeding the model noise and seeing it hallucinate images. This makes me think of "Do
+        Androids Dream of Electric Sheep?" by Philip K.
+
+        Issues around bias in female gender.
     </p>
-    <h2>Part 3 - Warp / Rectification of Images</h2>
-    <h3>Painting from Pixar's "Luca"</h3>
-    <p class='indented'> Since the target deformation wasn't square, I had to measure what were the ratios of the
-        sides for the target.
-    </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Original </div>
-                <img src="./../5/media/luca_corr.jpg" alt="" width="450" class="pixelated">
-            </div>
-            <div class="image-item">
-                <div class="image-text">Warped</div>
-                <img src="./../5/media/luca_target_corr.jpg" alt="" width="450" class="pixelated">
-            </div>
-        </div>
-    </div>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <br>
-                <div class="image-text">Expanded canvas warp </div>
-                <img src="./../5/media/luca_warp.jpg" alt="" width="450" class="pixelated">
-            </div>
-        </div>
-    </div>
-    <h3>Book Homography</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <div class="image-item">
-                <div class="image-text">Original </div>
-                <img src="./../5/media/book_corr.jpg" alt="" width="450" class="pixelated">
-            </div>
-            <div class="image-item">
-                <div class="image-text">Warped</div>
-                <img src="./../5/media/book_target_corr.jpg" alt="" width="450" class="pixelated">
-            </div>
-        </div>
-    </div>
-    <h2>Part 4 - Stitching Mosaics</h2>
-    <h3 style="text-align: center;">Original Images</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/Room_2.jpg" alt="" width=250>
-        </div>
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/Room_1.jpg" alt="" width=250>
-        </div>
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/Room_3.jpg" alt="" width=250>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Point correspondence</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/room1_corr.jpg" alt="" width=550>
-        </div>
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/room2_corr.jpg" alt="" width=550>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Testing Alignment</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/room1_overlap.jpg" alt="" width=550>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Warp</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/room1_warp.jpg" alt="" width=550>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Warping alpha mask</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/room1_mask.jpg" alt="" width=550>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Testing mask on each side</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/final_image.jpg" alt="" width=550>
-        </div>
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/final_image2.jpg" alt="" width=550>
-        </div>
-    </div>
-    <h3 style="text-align: center;">Final Image</h3>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block" style="margin-right: 5px;">
-            <img src="./../5/media/final_image_composite.jpg" alt="" width=1450>
-        </div>
-    </div>
-    <h2>Part 5 - Proj 4A Reflection</h2>
-    <p class='indented'> My favorite part of this project was starting to think about overspecified systems given
-        and
-        making guesses based on the power of larger amounts of data. For the challenges at first my pixel splatting
-        was
-        taking a long time and I couldn't figure out what was happening, and then I realized that my points of
-        correspondence
-        were not in the same order. I also had to manually create the points of correspondence which was a bit
-        tedious.
-        I can't wait for Project 5 to automate this and remove a lot of human error out of the equation.
-    </p>
-    <h1>Project 5 - Feature Matching for Autostitching</h2>
-        <h2>Part 1 - Detect corner features in an image</h2>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">We first begin by computing the Harris corners of a portait of Harris:
-                    </div>
-                    <img src="./media/harris_corners.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">Then we filter those interest points by the weight of the 'h' scores and
-                        take
-                        the top 1k scores</div>
-                    <img src="./media/filtered_harris_corners.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> The high degree of clustering causes issues with alignment because the
-                        potential overlap in the image might be a small<br> corner, therefore we use Adaptive
-                        Non-Maximal
-                        Suppression (ANMS) technique to find more uniform interest points. <br> (Number of
-                        interest points reduced for illustrative purposes)</div>
-                    <img src="./media/anms_vectorized_filtered_corners.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <p class='indented'> ANMS picks important points in a picture by giving each one a “radius” that measures
-            how
-            far it
-            is from stronger points nearby. Only points with the largest radii are kept, which means we end up with
-            the
-            strongest points that are also spread out, making it easier to line up or combine multiple pictures.
-        </p>
-        <h2> Part 2- Extracting a Feature Descriptors</h2>
-        <p class='indented'></p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">For each of the coordinates, we find a window of 40x40 pixels</div>
-                    <img src="./media/harris_descriptors.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <p class='indented'></p>
-        <p class='indented'></p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">Subsequently, each one of those 40x40 patches gets scaled to 8x8 patches
-                        using
-                        anti-aliasing.<br>This is useful for making the architecture more translation invariant.
-                        Here we
-                        see
-                        the patches applied back to the original image:
-                    </div>
-                    <img src="./media/harris_patches_overlay.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Then we bias/gain-normalize the patches using the following formula:
-                    </div>
-                    <img src="./media/bias-gain-normalizer.jpg" alt="" width="150">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Which results in the following individual patches:</div>
-                    <img src="./media/descriptor_patches.jpg" alt="" width="450">
-                </div>
-            </div>
-        </div>
-        <h3>Landscape mosaic</h3>
-        <p class='indented'>Luckily this technique is applicable outside the domain of photos of Kamala Harris. <br>
-            Let's
-            use these technique for the utility of creating a stitched landscape mosaic of a room.
-            <br> <br> Here are the input images for the mosaic:
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">Left image</div>
-                    <img src="./media/Room_2.jpg" alt="" width="400">
-                </div>
-                <div class="image-item">
-                    <div class="image-text">Middle image</div>
-                    <img src="./media/Room_1.jpg" alt="" width="400">
-                </div>
-                <div class="image-item">
-                    <div class="image-text">Right image</div>
-                    <img src="./media/Room_3.jpg" alt="" width="400">
-                </div>
-            </div>
-        </div>
-        <p class='indented'> Previous alorithms applied to the room images result in the following correspondences:
-        </p>
-        <div class="grid-container">
-            <!-- Top Titles -->
-            <div class="grid-title"></div> <!-- Empty space for alignment -->
-            <div class="grid-title">Harris Corners -></div>
-            <div class="grid-title">Filtered by h -></div>
-            <div class="grid-title">Filtered by ANMS</div>
+    <footer>
+        CS 280A - Intro to Computer Vision | Alonso Martinez
+    </footer>
+    <script>
+        function setLabelsAndSize(containerId) {
+            const container = document.getElementById(containerId);
+            const leftLabel = document.getElementById('leftLabel');
+            const rightLabel = document.getElementById('rightLabel');
+            const imgA = document.getElementById('imgA');
+            const imgB = document.getElementById('imgB');
 
-            <!-- Left Titles + Images for each row -->
-            <div class="grid-title">Left image</div>
-            <img src="./media/room2_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room2_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room2_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+            // Get the titles from the data attributes
+            const leftTitle = container.getAttribute('data-left-title');
+            const rightTitle = container.getAttribute('data-right-title');
 
-            <div class="grid-title">Middle image</div>
-            <img src="./media/room1_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room1_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room1_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
+            // Update the labels
+            leftLabel.textContent = leftTitle;
+            rightLabel.textContent = rightTitle;
 
-            <div class="grid-title">Right image</div>
-            <img src="./media/room3_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room3_filtered_harris_corners.jpg" alt="" class="grid-image pixelated">
-            <img src="./media/room3_anms_vectorized_filtered_corners.jpg" alt="" class="grid-image pixelated">
-        </div>
-        <p class='indented'> And their corresponding Feature Descriptors:
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Left image:</div>
-                    <img src="./media/room2_descriptor_patches.jpg" alt="" width="800">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Middle image:</div>
-                    <img src="./media/room1_descriptor_patches.jpg" alt="" width="800">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Right image:</div>
-                    <img src="./media/room3_descriptor_patches.jpg" alt="" width="800">
-                </div>
-            </div>
-        </div>
-        <h2>Part 3- Feature Descriptor Matching</h2>
-        <p class='indented'> Now that we isolated interesting differentiable patches in the image, we can start to
-            compare them to each other to find correspondences. To find the matches, per patch we calculate the L2
-            distance
-            (known as nearest neighbor in Machine Learning) between all pairs of descriptors and store them in a
-            sorted
-            list. Instead of doing filtering based on global L2 distance between potential correspondences, we use
-            the
-            method described in <a href="https://people.eecs.berkeley.edu/~malik/cs294/lowe-ijcv04.pdf">Distinctive
-                Image
-                Features from Scale-Invariant Keypoints</a>. by David Lowe in which we use the ratio of the
-            distances of
-            the
-            two best Nearest Neighbor matches. If the ratio is less than 0.8, we consider the match to be valid.
-            This in
-            a
-            way gives "confidence score" in relation to the second best match.
+            // Get width and height from data attributes
+            let width = container.getAttribute('data-width');
+            let height = container.getAttribute('data-height');
 
-            <br><br>Surprisingly this algorithm finds some corresponsances despite knowing the true alignment would
-            require perspective warp and that this algorithm is neither rotation nor scale invariant.
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Lowe's matching algorithm</div>
-                    <div class="image-text">(I lowered the point interest count to more easily spot correspondence)
-                    </div>
-                    <img src="./media/room1_room2_matches.jpg" alt="" width="1200">
-                </div>
-            </div>
-        </div>
-        <h2>Part 4 - RANSAC</h2>
-        <p class='indented'>This could still use some improvement so let's use RANSAC to find the best matches. Here
-            are
-            the
-            much improved results: </p>
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
-                    <div class="image-text">(I lowered the point interest count to more easily spot correspondence)
-                    </div>
-                    <img src="./media/room1_room2_ransac_matches.jpg" alt="" width="1200">
-                </div>
-            </div>
-        </div>
-        <p class='indented'> In reality, we use a much higher count of interest points to find a good homography.
-            Here
-            is
-            first the feature descriptor matching:
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> Lowe's matching algorithm</div>
-                    <div class="image-text"></div>
-                    <img src="./media/room1_room2_matches_real.jpg" alt="" width="1200">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"> <br>Using RANSAC it seems close to 100% matching points! </div>
-                    <div class="image-text"> RANSAC + Lowe's matching algorithm </div>
-                    <img src="./media/room1_room2_ransac_matches_real.jpg" alt="" width="1200">
-                </div>
-            </div>
-        </div>
-        <h3>Final result</h3>
-        <p class='indented'> We then compute the homography warp per each pair of correspondences and stitch the
-            images
-            together. For the blending I used the same texture as in project4 which I think gives a nice result:
-        </p>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">Result with Automatic alignment</div>
-                    <img src="./media/Livingroom_mosaic.jpg" alt="" width="1500">
-                </div>
-            </div>
-        </div>
-        <br>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text">Result with Manual alignment</div>
-                    <img src="./media/final_image_composite.jpg" alt="" width="1500">
-                </div>
-            </div>
-        </div>
-        <br>
-        <h3>More Mosaics</h3>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"></div>
-                    <img src="./media/Lab_mosaic.jpg" alt="" width="1500">
-                </div>
-            </div>
-        </div>
-        <div class="image-wrapper indent-level-1">
-            <div class="image-block">
-                <div class="image-item">
-                    <div class="image-text"></div>
-                    <img src="./media/LabSheep_mosaic.jpg" alt="" width="1500">
-                </div>
-            </div>
-        </div>
-        <h2>Part 5 - Reflection</h2>
-        <p class='indented'> My favorite part was seeing how powerful RANSAC is even without rotation or scale
-            invariance in
-            the descriptors. Given we know for sure that to align the images it would require a perspective warp,
-            it's
-            impressive it works. My suspicion is that this is mostly because of the translation invariance from
-            blurring
-            the
-            descriptors. Some challenges I had during this project were fighting with the non-standardization of X
-            and Y
-            order across libraries. Surprisingly figuring out how to expand the canvas and align the multiple
-            stitches
-            was
-            harder than I thought it would be!
-        </p>
+            // Get the original aspect ratio from the first image
+            const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
 
-
-        <footer>
-            CS 280A - Intro to Computer Vision | Alonso Martinez
-        </footer>
-        <script>
-            function setLabelsAndSize(containerId) {
-                const container = document.getElementById(containerId);
-                const leftLabel = document.getElementById('leftLabel');
-                const rightLabel = document.getElementById('rightLabel');
-                const imgA = document.getElementById('imgA');
-                const imgB = document.getElementById('imgB');
-
-                // Get the titles from the data attributes
-                const leftTitle = container.getAttribute('data-left-title');
-                const rightTitle = container.getAttribute('data-right-title');
-
-                // Update the labels
-                leftLabel.textContent = leftTitle;
-                rightLabel.textContent = rightTitle;
-
-                // Get width and height from data attributes
-                let width = container.getAttribute('data-width');
-                let height = container.getAttribute('data-height');
-
-                // Get the original aspect ratio from the first image
-                const aspectRatio = imgA.naturalWidth / imgA.naturalHeight;
-
-                // If only width is provided, calculate the height based on the aspect ratio
-                if (width && !height) {
-                    height = width / aspectRatio;
-                }
-
-                // If only height is provided, calculate the width based on the aspect ratio
-                if (!width && height) {
-                    width = height * aspectRatio;
-                }
-
-                // Apply the width and height to the container
-                container.style.width = `${width}px`;
-                container.style.height = `${height}px`;
+            // If only width is provided, calculate the height based on the aspect ratio
+            if (width && !height) {
+                height = width / aspectRatio;
             }
 
-            // Call the function to set custom titles and sizes
-            window.onload = function () {
-                setLabelsAndSize('comparisonContainer');
-            };
+            // If only height is provided, calculate the width based on the aspect ratio
+            if (!width && height) {
+                width = height * aspectRatio;
+            }
 
-            // Add mousemove functionality for the comparison
-            const comparisonContainer = document.getElementById('comparisonContainer');
-            const divider = document.getElementById('divider');
-            const imgTop = document.querySelector('.img-top');
+            // Apply the width and height to the container
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
+        }
 
-            comparisonContainer.addEventListener('mousemove', (event) => {
-                // Get the position of the mouse relative to the container
-                const rect = comparisonContainer.getBoundingClientRect();
-                const x = event.clientX - rect.left; // x position of the mouse inside the container
+        // Call the function to set custom titles and sizes
+        window.onload = function () {
+            setLabelsAndSize('comparisonContainer');
+        };
 
-                // Set the position of the divider
-                divider.style.left = x + 'px';
+        // Add mousemove functionality for the comparison
+        const comparisonContainer = document.getElementById('comparisonContainer');
+        const divider = document.getElementById('divider');
+        const imgTop = document.querySelector('.img-top');
 
-                // Clip the top image to create the A/B effect
-                imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
-            });
+        comparisonContainer.addEventListener('mousemove', (event) => {
+            // Get the position of the mouse relative to the container
+            const rect = comparisonContainer.getBoundingClientRect();
+            const x = event.clientX - rect.left; // x position of the mouse inside the container
 
-            comparisonContainer.addEventListener('mouseleave', () => {
-                // Reset the divider to the middle when the mouse leaves the container
-                const middle = comparisonContainer.offsetWidth / 2;
-                divider.style.left = middle + 'px';
-                imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
-            });
-        </script>
+            // Set the position of the divider
+            divider.style.left = x + 'px';
+
+            // Clip the top image to create the A/B effect
+            imgTop.style.clip = `rect(0, ${x}px, 400px, 0)`;
+        });
+
+        comparisonContainer.addEventListener('mouseleave', () => {
+            // Reset the divider to the middle when the mouse leaves the container
+            const middle = comparisonContainer.offsetWidth / 2;
+            divider.style.left = middle + 'px';
+            imgTop.style.clip = `rect(0, ${middle}px, 400px, 0)`;
+        });
+    </script>
 
 </body>
 
