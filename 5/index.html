@@ -313,7 +313,7 @@
     </div>
     <h2>Intro</h2>
     <p class='indented'> We begin our journey into neural generative models with Diffusion models. In this exciting
-        project we leverage a pretrained model from DeepFloyd to generate images from inputs such as: text prompts,
+        project, we leverage a pretrained model from DeepFloyd to generate images from inputs such as: text prompts,
         images, or pure RGB noise. Leveraging the pre-trained weights, we manually implement iterative diffusion
         denoising, Classifier-Free Guidance (CFG), and enhance the capabilities of the model via image-to-image
         translation, hole filling (inpainting), and explore how to achieve results similar to that of <a
@@ -345,13 +345,13 @@
     </div>
     <br>
     <p class='indented'> We notice that the model is able to generate images that are quite close to the text prompt.
-        However, these iamges were cherry-picked as the model is not perfect and can generate images that are not quite
+        However, these images were cherry-picked as the model is not perfect and can generate images that are not quite
         what we expect. We also notice a propotional initial correlation between the quality of the image and
         <code>num_inference_steps</code>.
         <br><br>
     <h2> Part 1: Sampling Loops </h2>
     <h2>1.1 - Implementing the Forward Process</h2>
-    <p class='indented'> First we being by creating our own forward pass that can add noise to an image. Given we are
+    <p class='indented'> First, we begin by creating our own forward pass that can add noise to an image. Given we are
         using a pre-trained model from DeepFloyd, we need also need to adhere to two constraints: 1) The non-linear
         noise schedule they used to train the model (using a look up table found within <code>alphas_cumprod</code>),
         and 2) The number of discrete steps the model was trained with: 1000 steps (<code>t</code> values of 0-999)
@@ -375,8 +375,8 @@
     </div>
     <br>
     <p class='indented'>
-        Of note ist that that the formula ∈ ~ N(0,1) does not mean that the noise generated is of range 0-1, but rather
-        that the noise is of 1 standard deviation (genearally values of -4 to 4). Here are the results from the forward
+        Of note is that the formula ∈ ~ N(0,1) does not mean that the noise generated is of range 0-1, but rather
+        that the noise is of 1 standard deviation (generally values of -4 to 4). Here are the results from the forward
         function at the corresponding values:
     </p>
     <br>
@@ -403,7 +403,7 @@
     <br><br><br>
     <h2>1.2 Classical Denoising</h2>
     <p class='indented'> Before overcomplicating things, one should always evaluate the simple solution: "Can we remove
-        the noise with convolved Gaussian filers instead of Machine Learning models?" The short answer is "not well
+        the noise with convolved Gaussian filters instead of Machine Learning models?" The short answer is "not well
         enough".<br><br>
         We manually tune the kernel size and sigma trying to strike the balance between getting rid of the noise while
         not losing too much detail in the original image. Here are the results:
@@ -444,7 +444,7 @@
         </div>
     </div>
     <br>
-    <p class='indented' style="text-align: center; max-width: 900px; margin: 0 auto;"> Now let's apply utilize we
+    <p class='indented' style="text-align: center; max-width: 900px; margin: 0 auto;"> Now let's apply what we
         learned in project 2 by applying a <a href="https://alonsorobots.github.io/2" target="_blank">sharpening
             filter</a> to bring back detail by subtracting one gaussian level vs another and adding in the sharpness to
         the original image:
@@ -1205,7 +1205,7 @@
         <li>Average orig_noise_A and orig_noise_B</li>
     </ol>
     <p class="indented2">
-        This surprisngly simple techniques yield some incredibly creative and striking!
+        This surprisingly simple technique yield some incredibly creative and striking!
     </p>
     <p class="indented2" style="text-align: center;">
         <b>"an oil painting of an old man" </b> &rarr; <b>"an oil painting of people around a campfire"</b>
