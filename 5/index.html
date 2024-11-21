@@ -1280,10 +1280,73 @@
             </div>
         </div>
     </div>
+    <br><br><br>
+    <h1>CS 280A Project 5B: Diffusion Models from Scratch!</h1>
+    <br><br>
+    <h2>Unconditioned unet</h2>
 
-
-
-
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noising function</div>
+                <img src="./../5/media/noised_array.jpg" alt="" width="700">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noising function</div>
+                <img src="./../5/media/orig_training_losses.png" alt="" width="700">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold">1 EPOCH</div>
+                <div class="image-text" style="font-weight: bold">
+                    original&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noised to
+                    t=0.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;predicted</div>
+                <img src="./../5/media/orig_1epoch.jpg" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold">5 EPOCH</div>
+                <div class="image-text" style="font-weight: bold">
+                    original&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noised to
+                    t=0.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;predicted</div>
+                <img src="./../5/media/orig_5epoch.jpg" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold"></div>
+                <img src="./../5/media/orig_t_sweep_removal.png" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <h2>Time conditioned unet</h2>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Noising function</div>
+                <img src="./../5/media/u_net_training_loss.png" alt="" width="700">
+            </div>
+        </div>
+    </div>
+    <br><br>
 
 
     <h2>Part 2 - Bells and Whistles (WIP section)</h2>
@@ -1291,17 +1354,16 @@
         <li> Used super resolution</li>
         <li> Animated diffusion steps for gifs</li>
         <li> Animated gifs to better communicate results</li>
-        <li> Did logo for class (WIP) </li>
-        <li> I did more examples for outputs like 1.7, 1.8, 1.9</li>
+        <li> For Part A. I did more examples for outputs like 1.7, 1.8, 1.9</li>
     </ul>
 
 
-    <h2>Final thoughts (Super WIP) </h2>
+    <h2>Final thoughts</h2>
     <p class=indent>
         I particularly enjoyed feeding the model noise and seeing it hallucinate images. This makes me think of "Do
         Androids Dream of Electric Sheep?" by Philip K.<br><br>
 
-        Talk about issues around dataset bias towards female gender.
+        This was a fantastic forcing function to learn about pytorch, neural networks, and the diffusion models!
     </p>
     <footer>
         CS 280A - Intro to Computer Vision | Alonso Martinez
