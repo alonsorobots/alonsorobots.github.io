@@ -1284,7 +1284,16 @@
     <h1>CS 280A Project 5B: Diffusion Models from Scratch!</h1>
     <br><br>
     <h2>Unconditioned unet</h2>
+    <p class="indented" style="text-align: left;">
+        Now that we've gotten our feet wet playing with pre-trained models, let's try to implement a diffusion model
+        from scratch! We'll start with a simple unconditioned unet model and then we will move to conditioning with
+        time, class and re-implement Classifier-Free guidance.
+    </p>
+    <h3>Noising function</h3>
 
+    <p class="indented" style="text-align: left;">
+        We being by 'diffusing' our original image with a noise function: Original + (normal noise * sigma):
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -1294,6 +1303,10 @@
         </div>
     </div>
     <br><br>
+    <h3>Training </h3>
+    <p class="indented" style="text-align: left;">
+        We train a unet designed to predict the original image given a noisy image at simga = 0.5:
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -1303,6 +1316,9 @@
         </div>
     </div>
     <br><br>
+    <p class="indented" style="text-align: left;">
+        In the figures below you can see that the prediction capabilities improve with additional epochs:
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
@@ -1311,7 +1327,7 @@
                     original&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noised to
                     t=0.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     &nbsp;&nbsp;&nbsp;predicted</div>
-                <img src="./../5/media/orig_1epoch.jpg" alt="" width="400" class="pixelated">
+                <img src="./../5/media/orig_1epoch.jpg" alt="" width="300" class="pixelated">
             </div>
         </div>
     </div>
@@ -1324,43 +1340,178 @@
                     original&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;noised to
                     t=0.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     &nbsp;&nbsp;&nbsp;predicted</div>
-                <img src="./../5/media/orig_5epoch.jpg" alt="" width="400" class="pixelated">
+                <img src="./../5/media/orig_5epoch.jpg" alt="" width="300" class="pixelated">
             </div>
         </div>
     </div>
     <br><br>
+    <p class="indented" style="text-align: left;">
+        However, given that this model was purely trained using simga = 0.5, it does not generalize well to other
+        sigmas:
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text" style="font-weight: bold"></div>
-                <img src="./../5/media/orig_t_sweep_removal.png" alt="" width="400" class="pixelated">
+                <div class="image-text" style="font-weight: bold">Out-of-Distribution Testing</div>
+                <div class="image-text" style="font-weight: bold"> Sigma: [0, 0.2, 0.4, 0.5, 0.6, 0.8, 1] from left to
+                    right and predictions below ) </div>
+                <img src="./../5/media/orig_t_sweep_removal.png" alt="" width="700" class="pixelated">
             </div>
         </div>
     </div>
     <h2>Time conditioned unet</h2>
+    <p class="indented" style="text-align: left;">
+        To boost performance across more sigma values, we train a time conditioned unet by noising the inputs to
+        different t levels, and telling the model t level each image in the batch is at. So that this conditioning
+        information is not accidentally lost in the encoding part of the architecture, we inject the conditioning data
+        on the decoding (after the unflatten).
+    </p>
+    <h3>Training</h3>
+    <p class="indented" style="text-align: left;">
+        This time our models' goal isn't to directly predict the original image, but rather to predict the noise added
+        to the image. Additionally like in Part A, we sample the model iteratively as to improve the details in the
+        generations.
+    </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <div class="image-item">
-                <div class="image-text" style="font-weight: bold;">Noising function</div>
+                <div class="image-text" style="font-weight: bold;"></div>
                 <img src="./../5/media/u_net_training_loss.png" alt="" width="700">
             </div>
         </div>
     </div>
     <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 1</div>
+                <img src="./../5/media/unet_epoch_1.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 5</div>
+                <img src="./../5/media/unet_epoch_5.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 10</div>
+                <img src="./../5/media/unet_epoch_10.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 20px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 15</div>
+                <img src="./../5/media/unet_epoch_15.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 20</div>
+                <img src="./../5/media/unet_epoch_20.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 20px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 40</div>
+                <img src="./../5/media/unet_epoch_40.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <br><br>
+    <h2>Class and Time conditioned CFG unet</h2>
+    <h3>Training</h3>
+    <p class="indented" style="text-align: left;">
+        We continue to improve our model by adding class conditioning to the model. This is done by adding a one-hot
+        enconding to the architecture at the same point where we injected the time conditioning. In order to incourage
+        the model to work even without the class conditioning, we add a dropout layer to the class conditioning with a
+        probability of 0.1. Here we also evaluate the test loss to make sure we are not overfitting.
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Train Loss</div>
+                <img src="./../5/media/ut_unet_train_loss.png" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Test Loss</div>
+                <img src="./../5/media/ut_unet_test_loss.png" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block" style="margin-right: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 1</div>
+                <img src="./../5/media/ct_unet_epoch_1.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 10px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 5</div>
+                <img src="./../5/media/ct_unet_epoch_5.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 10</div>
+                <img src="./../5/media/ct_unet_epoch_10.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+        <div class="image-block" style="margin-left: 20px;">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 15</div>
+                <img src="./../5/media/ct_unet_epoch_15.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Epoch 20</div>
+                <img src="./../5/media/ct_unet_epoch_20.gif" alt="" width="400" class="pixelated">
+            </div>
+        </div>
+    </div>
+    <br><br>
 
 
-    <h2>Part 2 - Bells and Whistles (WIP section)</h2>
+
+    <h2>Bells and Whistles (WIP section)</h2>
+    <h3> Part 5A</h3>
     <ul class="indented">
         <li> Used super resolution</li>
         <li> Animated diffusion steps for gifs</li>
         <li> Animated gifs to better communicate results</li>
         <li> For Part A. I did more examples for outputs like 1.7, 1.8, 1.9</li>
     </ul>
-
+    <h3> Part 5B</h3>
+    <ul class="indented">
+        <li> Added test loss to evaluate overfitting</li>
+        <li> Animated diffusion steps for gifs</li>
+    </ul>
+    <br>
 
     <h2>Final thoughts</h2>
     <p class=indent>
-        I particularly enjoyed feeding the model noise and seeing it hallucinate images. This makes me think of "Do
+        While this was by far the most challenging project in the course, it was equivallently the most rewarding. With
+        other projects, you could predict what the output would be, but with this one, the results were always so fun to
+        look at. You truly begin to appreciate the power of neural networks and the potential of generative models. I
+        particularly enjoyed feeding the model noise and seeing it hallucinate images. This makes me think of "Do
         Androids Dream of Electric Sheep?" by Philip K.<br><br>
 
         This was a fantastic forcing function to learn about pytorch, neural networks, and the diffusion models!
