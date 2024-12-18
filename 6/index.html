@@ -106,10 +106,11 @@
         }
 
         h3 {
+            color: #3f586f;
             margin-left: 40px;
             margin-top: 10px;
             margin-bottom: 10px;
-            font-size: 21px;
+            font-size: 24px;
         }
 
         ul.indented {
@@ -310,49 +311,77 @@
     </div>
     <br><br>
     <h2>Intro</h2>
-    <p class='indented'> The order of words can change the meaning of a sentence.
+
+    <p class='indented'> <b>Where people look</b> is critical to visual communication
     </p>
-    <div class="image-wrapper indent-level-1">
-        <div class="image-block">
-            <img src="./media/InfoOrderChangesMeaning.gif" alt="" width=400>
-        </div>
-    </div>
-    <br><br>
-    <p class='indented'> Similarly, the order of where people look in an image can change the meaning of the image.
-    </p>
-    <div class="image-wrapper indent-level-1">
+    <br>
+    <div class=" image-wrapper indent-level-1">
         <div class="image-block">
             <img src="./media/OrderOfWherePeopleLook.gif" alt="" width=400>
         </div>
     </div>
-    <h2>Problem Statement</h2>
-    <p class='indented'> In this project we explore how to change the order of where people look in an image using. We
-        leverage existing deep learning models that predict where people look in an image (DeepGaze) and
-        create a Diffusion based architecture to enduce the average viewre to look towards an area specified by the
-        user.
+    <br>
+    <h2>Previous work</h2>
+    <p class='indented'> Traditionally, techniques to influence where you look involve editing pixels by applying
+        fitlers such a blur or vignette to an image.
     </p>
-    <br><br>
-    <h2>Architecture</h2>
-    <p class='indented'> Text here about the architecture
+    <div class=" image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/Vignette.png" alt="" width=900>
+        </div>
+    </div>
+    <p class='indented'> However, people are incredible <b>fake discriminators</b> and we can spot that those pixels
+        have been manipulated in a way that doesn't reflect the real world.
+    </p>
+    <br>
+    <h2>Problem Statement</h2>
+    <p class='indented'> In this project we explore creating generative models that influence where
+        people look in an image to match the artist intent while keeping the final image inside the manifold of
+        plaussible realistic images.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
-            <img src="./media/Diagram.png" alt="" width=1024>
+            <img src="./media/Overview.png" alt="" width=900>
         </div>
     </div>
+    <p class='indented'> We leverage existing state of the art deep learning models for gaze estimation
+        (<a href="https://github.com/matthias-k/DeepGaze">DeepGaze</a>) and generative techniques such as <a
+            href="https://sde-image-editing.github.io/">SDEdit</a> and <a
+            href="https://github.com/andreas128/RePaint">RePaint</a> to create a Diffusion based architecture to enduce
+        the average viewer to look towards a mask painted by the user.
+    </p>
+
     <br>
-    <h2>Natural Vignette via SDEdit</h2>
-    <p class='indented'> Talk about SDEdit.
+    <h2>Our Model</h2>
+    <h3>Natural Vignette via SDEdit</h3>
+    <p class='indented'> We apply the same vignette technique as mentioned before, but additionally we pass the image
+        through SDEdit to ask, <b>"How could we achieve this look while keeping the image within the manifold of
+            realistic
+            images?"</b> <br><br>
+        In the result below you can see that it added more <b>density to the foliage of the trees</b> in order to
+        achieve a "<b><u>Natural vignette</b></u>" effect.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
             <img src="./media/Title.png" alt="" width=900>
         </div>
     </div>
+    <br><br>
+    <h3>Content preservation via ReEdit and Text prompt</h3>
+    <p class='indented'> As a design choice, we utilized the architecture proposed by <a
+            href="https://github.com/andreas128/RePaint">RePaint</a> to give the artist the option to <b>preserve</b>
+        the pixels in the area they want to draw attention (as specificed by the target gaze map). To maintain context
+        of the image, in the inverse of that mask, we use text prompt conditioning and CFG scale to allow for a
+        re-imagining of the scene that might reduce distarction from the target gaze map.<br><br> People are one of the
+        strongest gaze attractors in image. In the example below, you can see that the person in the yellow shirt is
+        still present in the generated image, but they are much smaller and facing away from the camera (looking towards
+        the temple).
+    </p>
     <br>
-    <h2>Content preservation via ReEdit and Text prompt</h2>
-    <p class='indented'> Talk about the option to preserve the existing pixels of an image via ReEdit. Other pixels are
-        conceptually preserved via text prompt.
+    <h3>Estimation of gaze</h3>
+    <p class='indented'> Leveraging the state of the art model for gaze estimation <a
+            href="https://github.com/matthias-k/DeepGaze">DeepGaze</a>, we can estimate where people will look in an
+        image.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -360,11 +389,30 @@
         </div>
     </div>
     <br>
+    <h2>Architecture</h2>
+    <p class='indented'> Utilizing this gaze estimation, we can compute an L2 loss between the target gaze map and the
+        target gaze map autored by the user. Due to time constraints, at the moment we don't follwo the gradient of
+        creating a diffusion model that is sensitive to how to manipulate objects such as to match the target gaze map,
+        but instead we randomly sample and use the L2 to sort the images that best matchesd our goals. to pre-trained
+        model. <br><br>
+
+        Much like project 5, we utilize the pre-traiened diffusion model <a
+            href="https://github.com/deep-floyd/IF">DeepFloyd</a> as the
+        backbone of our generative model.
+    </p>
+    <br>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <img src="./media/Diagram.png" alt="" width=1024>
+        </div>
+    </div>
+    <br>
+
     <h2>Results</h2>
     <h3>Results Legend</h3>
-    <p class='indented'> The following results will be organized as the figure below. The "Orig-Gen gazemap delta" are
-        the results of substracting the gaze map from the original image, from the gaze map of the generated image. It
-        allows you to see how the edits affected DeepGaze's predictios of where people would look.
+    <p class='indented'> The figure below explains how to interpret the results. The "Orig-Gen gazemap delta" (bottom
+        right) is the result of substracting the gaze map from the original image, from the gaze map of the generated
+        image. It allows you to see how the edits affected DeepGaze's predictions of where people would look.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -373,7 +421,8 @@
     </div>
     <br>
     <h3>Results</h3>
-    <p class='indented'> An interesting interpretation of the vignette as of *steam* on the corn.
+    <p class='indented'> An interesting interpretation of the vignette as of *steam* on the corn. This is very different
+        than effects traditionally achieved in Photoshop (pre-generative AI techniques).
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -381,9 +430,9 @@
         </div>
     </div>
     <br>
-    <p class='indented'> The target gaze is not centered and off to the side. In the orig-gen gaze delta (bottom right)
-        one can see how the removal of the other
-        helmets removed visual distrations.
+    <p class='indented'> The target gaze for this image is particularly interesting as the area of interest is spatially
+        not centered and off to the right. In the orig-gen gaze delta (bottom right) one can see how the removal of the
+        other helmets removed visual distrations.
     </p>
     <div class="image-wrapper indent-level-1">
         <div class="image-block">
@@ -474,9 +523,56 @@
         </div>
     </div>
     <br>
+    <h2>Future work</h2>
+    <h3>Fine Tuning / LoRA</h3>
+    <p class='indented'> As mentioned before, we intend to fine tune the model to follow the gradient of the L2 Loss to
+        allow for more efficient sampling (For this project we did random sampling).
+    </p>
+    <h3>Target gaze map automation</h3>
+    <p class='indented'>We started to explore automating the target gaze map with simple mouse clicks on an image by
+        leveraging state of the art monocular depth estimating models such as <a
+            href="https://huggingface.co/docs/diffusers/en/using-diffusers/marigold_usage">Marigold</a>. Below we show
+        how based on a mouse click we could manipulate the depth information to be object centric rather than camera
+        centric:
+    </p>
+    <div class="image-wrapper indent-level-1">
+        <div class="image-block">
+            <div class=" image-item">
+                <div class="image-text" style="font-weight: bold;">Marigol's depth estimation</div>
+                <img src="./media/Depth_orig.jpg" alt="" width="512">
+            </div>
+            <div class=" image-item">
+                <div class="image-text" style="font-weight: bold;">Marigol's camera centric depth estimation</div>
+                <img src="./media/Depth_marigold.png" alt="" width="512">
+            </div>
+            <div class="image-item">
+                <div class="image-text" style="font-weight: bold;">Object centric depth estimation</div>
+                <img src="./media/Depth_obj_centric.png" alt="" width="512">
+            </div>
+        </div>
+    </div>
+    <h3>Hybrid Vignette</h3>
+    <p class='indented'>We wanted to try to apply the vignette to the lower frequencies of the image and preserve the
+        high frequencies. This would allow for a more natural looking vignette effect.
+    </p>
+    <h3>RePaint masks improvements</h3>
+    <p class='indented'> If you substract the target gaze map from the original image's gaze map prediction you
+        essentially get a mask of the distracting areas. We want to explore using this as a mask for RePaint.
+    </p>
+    <h3>Gaze order sequence</h3>
+    <p class='indented'> For storytelling purposes, the ability to induce gaze order sequence would be a powerful tool!
+    </p>
+    <h3>Pyramid gaze manipulation</h3>
+    <p class='indented'> In art, it's often useful to <b>thumbnail</b> a composition of an image before creatig the full
+        image. Intuitively you can imageine how computing gaze manipulation from out model at multiple resolutions might
+        improve our results.
+    </p>
+    <br>
     <h2>Final thoughts</h2>
     <p class=indent>
-        Text here
+        As you can tell by the long list of items in our future work section, this class has <b>filled us with
+            passion</b> for exploring the possibilities of computer vision, generative models, and creating beautiful
+        art. Thank you so much for everything!!!
     </p>
     <footer>
         CS 280A - Intro to Computer Vision | Alonso Martinez and Tianshuang (Ethan) Qiu
